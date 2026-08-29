@@ -1,0 +1,6 @@
+{
+  "name": "Sunshine Babies Essentials",
+  "description": "Official e-commerce store for Sunshine Babies Essentials — premium baby essentials, maternity care, newborn nursery, infant gear, and back-to-school products with WhatsApp ordering and administrative store management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
