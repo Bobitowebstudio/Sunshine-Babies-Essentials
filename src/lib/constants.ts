@@ -70,6 +70,9 @@ export const DEFAULT_COMPANY_SETTINGS: CompanySettings = {
   homepage_about_button_text: 'Learn More About Us',
   homepage_about_link: '/about',
   show_homepage_about: true,
+  announcement_bar_enabled: true,
+  announcement_bar_text:
+    'NOTICE: Paystack payment is temporarily unavailable. Please use any of our other available payment options, including bank account payment, payment after delivery, WhatsApp-assisted payment, and other payment methods available on the website. Paystack will be available again soon. We apologise for any inconvenience.',
 };
 
 export const INITIAL_CATEGORIES: Category[] = CATALOG_CATEGORIES;

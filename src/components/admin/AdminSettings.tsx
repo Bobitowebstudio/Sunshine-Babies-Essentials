@@ -26,11 +26,16 @@ import {
   Image as ImageIcon,
   Heart,
   Upload,
+  Megaphone,
+  RotateCcw,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { CompanySettings } from '../../types';
 import { BrandLogo } from '../common/BrandLogo';
 import { generateSupabaseSQL } from '../../lib/supabase';
+
+const DEFAULT_PAYSTACK_NOTICE =
+  'NOTICE: Paystack payment is temporarily unavailable. Please use any of our other available payment options, including bank account payment, payment after delivery, WhatsApp-assisted payment, and other payment methods available on the website. Paystack will be available again soon. We apologise for any inconvenience.';
 
 export const AdminSettings: React.FC = () => {
   const {
@@ -46,7 +51,7 @@ export const AdminSettings: React.FC = () => {
     inquiries,
   } = useStore();
 
-  const [form, setForm] = useState<CompanySettings>(() => ({
+  const [form, setRawForm] = useState<CompanySettings>(() => ({
     ...companySettings,
     business_name: companySettings.business_name || 'Sunshine Babies Essentials',
     tagline: companySettings.tagline || "Your baby's comfort is our biggest priority.",
@@ -86,8 +91,13 @@ export const AdminSettings: React.FC = () => {
     homepage_about_link: companySettings.homepage_about_link || '/about',
     show_homepage_about:
       companySettings.show_homepage_about !== undefined ? companySettings.show_homepage_about : true,
+    announcement_bar_enabled:
+      companySettings.announcement_bar_enabled !== undefined ? companySettings.announcement_bar_enabled : true,
+    announcement_bar_text:
+      companySettings.announcement_bar_text || DEFAULT_PAYSTACK_NOTICE,
   }));
 
+  const [isDirty, setIsDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
@@ -98,15 +108,22 @@ export const AdminSettings: React.FC = () => {
   const [showSqlSchema, setShowSqlSchema] = useState(false);
   const [copiedSql, setCopiedSql] = useState(false);
 
-  // Sync state whenever companySettings changes in context, but do not overwrite while user is actively saving
+  // setForm proxy that marks form as dirty and clears previous save indicator
+  const setForm: React.Dispatch<React.SetStateAction<CompanySettings>> = (action) => {
+    setIsDirty(true);
+    setIsSaved(false);
+    setRawForm(action);
+  };
+
+  // Sync state whenever companySettings changes in context, but do not overwrite while user has unsaved edits or is actively saving
   useEffect(() => {
-    if (!isSaving) {
-      setForm((prev) => ({
+    if (!isDirty && !isSaving) {
+      setRawForm((prev) => ({
         ...prev,
         ...companySettings,
       }));
     }
-  }, [companySettings, isSaving]);
+  }, [companySettings, isDirty, isSaving]);
 
   const handleFileUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -156,8 +173,17 @@ export const AdminSettings: React.FC = () => {
     setTimeout(() => setCopiedSql(false), 2500);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleDiscard = () => {
+    setRawForm({ ...companySettings });
+    setIsDirty(false);
+    setSaveError(null);
+    setSaveSuccess(null);
+  };
+
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) {
+      e.preventDefault();
+    }
     if (isSaving || uploadingField) return;
 
     setIsSaving(true);
@@ -165,24 +191,19 @@ export const AdminSettings: React.FC = () => {
     setSaveSuccess(null);
 
     try {
-      console.log('Saving branding...');
-      console.log('Saving social links...');
-      console.log('Updating WhatsApp...');
-      console.log('Updating footer...');
-
+      console.log('Saving store settings changes...');
       const res = await updateCompanySettings(form);
 
       if (!res.success) {
-        console.error('Supabase Error:', res.error);
-        setSaveError(res.error || 'Failed to save store configuration to Supabase.');
+        console.error('Save Error:', res.error);
+        setSaveError(res.error || 'Failed to save store configuration.');
         setIsSaving(false);
         return;
       }
 
-      console.log('Refreshing StoreContext...');
-      console.log('Completed successfully.');
-      setSaveSuccess('Configuration saved successfully.');
+      setSaveSuccess('Configuration saved successfully and synced across live store.');
       setIsSaved(true);
+      setIsDirty(false);
       setTimeout(() => {
         setIsSaved(false);
       }, 5000);
@@ -203,23 +224,67 @@ export const AdminSettings: React.FC = () => {
   }&layer=mapnik&marker=${previewLat}%2C${previewLon}`;
 
   return (
-    <div className="space-y-6 max-w-4xl">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 max-w-4xl relative">
+      {/* Top Header with Sticky Action Controls */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sticky top-0 z-20 bg-slate-50/95 backdrop-blur-md py-3.5 border-b border-slate-200/90 -mx-4 px-4 sm:-mx-6 sm:px-6">
         <div>
-          <h2 className="text-base font-bold text-slate-900">
-            Brand Identity, About Us & Location Settings
+          <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+            <span>Store Configuration & Live Branding</span>
           </h2>
           <p className="text-xs text-slate-500">
-            Manage your store's live business name, About Us story, Abuja location coordinates, Google Maps directions, and payment settings without editing code.
+            Edit branding, announcement notice, coordinates, and payment options with instant live updates.
           </p>
         </div>
 
-        {isSaved && (
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 text-xs font-bold border border-emerald-200 animate-fade-in shadow-xs">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-            <span>Settings Saved Live!</span>
-          </div>
-        )}
+        <div className="flex items-center gap-2.5 shrink-0">
+          {isDirty && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-bold animate-pulse">
+              <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+              Unsaved Changes
+            </span>
+          )}
+
+          {isSaved && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 text-xs font-bold border border-emerald-200 shadow-xs">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              <span>Saved Live!</span>
+            </div>
+          )}
+
+          {isDirty && (
+            <button
+              type="button"
+              onClick={handleDiscard}
+              className="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-200 transition-colors cursor-pointer"
+            >
+              Discard
+            </button>
+          )}
+
+          <button
+            type="button"
+            id="admin-top-save-changes-btn"
+            onClick={() => handleSubmit()}
+            disabled={isSaving || !!uploadingField}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-black text-xs shadow-sm transition-all cursor-pointer ${
+              isDirty
+                ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 ring-2 ring-amber-400/60 hover:scale-[1.02]'
+                : 'bg-slate-900 hover:bg-slate-800 text-white'
+            } disabled:opacity-50 disabled:cursor-not-allowed`}
+          >
+            {isSaving ? (
+              <>
+                <RefreshCw className="w-4 h-4 animate-spin" />
+                <span>Saving...</span>
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4" />
+                <span>{isDirty ? 'Save Changes Now' : 'Save Changes'}</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       {saveError && (
@@ -429,6 +494,70 @@ export const AdminSettings: React.FC = () => {
 
               <div className="p-3.5 px-5 bg-slate-950 rounded-2xl shadow-inner flex items-center justify-center">
                 <BrandLogo inverted={true} size="md" showTagline={true} />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Customer Announcement Bar & Store Notice */}
+        <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div className="flex items-center gap-2">
+              <Megaphone className="w-4 h-4 text-amber-600" />
+              <h3 className="text-sm font-bold text-slate-900">
+                Top Announcement Bar & Customer Notice
+              </h3>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={form.announcement_bar_enabled !== false}
+                onChange={(e) => setForm({ ...form, announcement_bar_enabled: e.target.checked })}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-slate-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+              <span className="ml-2.5 text-xs font-semibold text-slate-700">
+                {form.announcement_bar_enabled !== false ? 'Active on Storefront' : 'Disabled'}
+              </span>
+            </label>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-semibold text-slate-700">
+                Notice Message Text
+              </label>
+              <button
+                type="button"
+                onClick={() =>
+                  setForm({
+                    ...form,
+                    announcement_bar_text: DEFAULT_PAYSTACK_NOTICE,
+                  })
+                }
+                className="text-[11px] font-bold text-amber-600 hover:text-amber-700 hover:underline inline-flex items-center gap-1 cursor-pointer"
+              >
+                <RotateCcw className="w-3 h-3" />
+                Reset to Paystack Notice
+              </button>
+            </div>
+            <textarea
+              rows={3}
+              value={form.announcement_bar_text || ''}
+              onChange={(e) => setForm({ ...form, announcement_bar_text: e.target.value })}
+              placeholder="Enter announcement text to display at the top of your website..."
+              className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-amber-500 leading-relaxed font-sans"
+            />
+            <span className="text-[10px] text-slate-400 block">
+              Displayed prominently at the very top of all store pages across mobile and desktop.
+            </span>
+
+            {/* Live Preview Box */}
+            <div className="p-3 bg-slate-950 text-slate-100 rounded-2xl border border-amber-500/40 text-[11px] leading-relaxed shadow-xs flex items-center gap-2.5">
+              <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
+              <div className="text-slate-300 flex-1">
+                <strong className="text-amber-400 font-bold mr-1.5">LIVE PREVIEW:</strong>
+                {form.announcement_bar_text || 'No text entered'}
               </div>
             </div>
           </div>
@@ -1270,6 +1399,53 @@ export const AdminSettings: React.FC = () => {
           </button>
         </div>
       </form>
+
+      {/* Floating Save Changes Pill Bar when user has unsaved edits */}
+      {isDirty && (
+        <div
+          id="admin-unsaved-changes-banner"
+          className="fixed bottom-6 right-6 z-50 bg-slate-950/95 backdrop-blur-md text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-amber-500/60 flex items-center gap-4 animate-fade-in"
+        >
+          <div className="flex items-center gap-2.5">
+            <span className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+            </span>
+            <div>
+              <p className="text-xs font-black text-white">Unsaved Changes Detected</p>
+              <p className="text-[10.5px] text-slate-300">Click to apply changes immediately to your live store</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleDiscard}
+              className="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+            >
+              Discard
+            </button>
+            <button
+              type="button"
+              id="admin-floating-save-changes-btn"
+              onClick={() => handleSubmit()}
+              disabled={isSaving || !!uploadingField}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-md transition-all hover:scale-105 cursor-pointer disabled:opacity-50"
+            >
+              {isSaving ? (
+                <>
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  <span>Saving...</span>
+                </>
+              ) : (
+                <>
+                  <Save className="w-3.5 h-3.5" />
+                  <span>Save Changes Now</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

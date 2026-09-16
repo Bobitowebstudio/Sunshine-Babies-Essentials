@@ -327,6 +327,9 @@ export interface CompanySettings {
   homepage_about_button_text?: string;
   homepage_about_link?: string;
   show_homepage_about?: boolean;
+  // Customer Announcement Notice
+  announcement_bar_enabled?: boolean;
+  announcement_bar_text?: string;
 }
 
 export interface PromotionalBanner {

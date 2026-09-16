@@ -8,6 +8,7 @@ export const AdminTemplates: React.FC = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editedText, setEditedText] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [savedId, setSavedId] = useState<string | null>(null);
 
   const handleStartEdit = (tpl: WhatsAppTemplate) => {
     setEditingId(tpl.id);
@@ -19,7 +20,9 @@ export const AdminTemplates: React.FC = () => {
       ...tpl,
       template_text: editedText,
     });
+    setSavedId(tpl.id);
     setEditingId(null);
+    setTimeout(() => setSavedId(null), 3000);
   };
 
   const handleCopy = (tpl: WhatsAppTemplate) => {
@@ -84,6 +87,12 @@ export const AdminTemplates: React.FC = () => {
 
               {/* Actions */}
               <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                {savedId === tpl.id && (
+                  <span className="mr-auto inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200 animate-fade-in">
+                    <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    Template Saved!
+                  </span>
+                )}
                 {isEditing ? (
                   <>
                     <button
