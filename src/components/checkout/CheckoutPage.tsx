@@ -82,7 +82,7 @@ export const CheckoutPage: React.FC = () => {
     currentUser?.addresses.find((a) => a.is_default)?.address || ''
   );
   const [deliveryNotes, setDeliveryNotes] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('paystack');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('bank_transfer');
 
   // Coupon state
   const [couponCode, setCouponCode] = useState('');
@@ -96,12 +96,6 @@ export const CheckoutPage: React.FC = () => {
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [copiedAccount, setCopiedAccount] = useState(false);
 
-  // Paystack Modal Simulation state (when inline popup script isn't loaded or test simulation is used)
-  const [activePaystackSession, setActivePaystackSession] = useState<PaystackInitResponse | null>(null);
-  const [showSimulatedModal, setShowSimulatedModal] = useState(false);
-  const [simulatedCardNumber, setSimulatedCardNumber] = useState('4084 0800 0000 0000');
-  const [simulatedCardExpiry, setSimulatedCardExpiry] = useState('12/28');
-  const [simulatedCardCvv, setSimulatedCardCvv] = useState('123');
 
   const selectedLocation =
     activeLocations.find((l) => l.id === selectedLocationId) ||
@@ -339,7 +333,9 @@ export const CheckoutPage: React.FC = () => {
         // Provide seamless interactive payment modal (compatible with test environment or when public key is loaded dynamically)
         setIsProcessing(false);
         setProcessingStatus('');
-        setShowSimulatedModal(true);
+        setPaymentError(
+          'Online payment is currently unavailable. Please choose another payment method.'
+        );
       }
     } catch (err: any) {
       console.error('Payment initialization error:', err);
@@ -431,7 +427,6 @@ export const CheckoutPage: React.FC = () => {
       } catch {}
 
       setIsProcessing(false);
-      setShowSimulatedModal(false);
       setActivePaystackSession(null);
 
       // Navigate to order confirmation
@@ -440,7 +435,6 @@ export const CheckoutPage: React.FC = () => {
       console.error('Payment verification error:', err);
       setIsProcessing(false);
       setProcessingStatus('');
-      setShowSimulatedModal(false);
       setPaymentError(
         `Payment was not verified: ${err.message || 'Transaction could not be confirmed.'}. Your cart is preserved so you can retry.`
       );
@@ -449,9 +443,7 @@ export const CheckoutPage: React.FC = () => {
 
   // Form submission dispatcher
   const handleSubmitOrder = (e: React.FormEvent) => {
-    if (paymentMethod === 'paystack') {
-      handlePaystackCheckout(e);
-    } else if (paymentMethod === 'whatsapp') {
+    if (paymentMethod === 'whatsapp') {
       handleWhatsAppCheckout(e);
     } else {
       handleDirectOrder(e);
@@ -657,55 +649,6 @@ export const CheckoutPage: React.FC = () => {
               </div>
 
               <div className="space-y-3">
-                {/* 1. Paystack (Online Payment) - TOP RECOMMENDED */}
-                <label
-                  className={`flex items-start gap-3.5 p-4 rounded-2xl border-2 transition-all cursor-pointer ${
-                    paymentMethod === 'paystack'
-                      ? 'border-amber-500 bg-amber-50/40 ring-2 ring-amber-500/20'
-                      : 'border-slate-200 hover:border-slate-300'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="payment"
-                    value="paystack"
-                    checked={paymentMethod === 'paystack'}
-                    onChange={() => setPaymentMethod('paystack')}
-                    className="mt-0.5 accent-amber-500"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <div className="flex items-center gap-1.5 font-bold text-xs text-slate-900">
-                        <CreditCard className="w-4 h-4 text-amber-600" />
-                        <span>Online Payment (Paystack Gateway)</span>
-                      </div>
-                      <span className="text-[10px] bg-amber-100 text-amber-900 border border-amber-300 font-bold px-2 py-0.5 rounded-full">
-                        Temporarily Unavailable
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-slate-500 mt-1">
-                      Pay securely with Nigerian Debit Card (Mastercard, Visa, Verve), Bank Transfer, Apple Pay, or USSD via Paystack.
-                    </p>
-                    <div className="mt-2 p-2.5 rounded-xl bg-amber-50 border border-amber-200/80 text-[11px] text-amber-900 flex items-start gap-2">
-                      <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
-                      <div>
-                        <strong className="font-bold block text-amber-950">
-                          NOTICE: Paystack payment is temporarily unavailable.
-                        </strong>
-                        <p className="text-[10.5px] text-amber-800/90 mt-0.5 leading-normal">
-                          Please use any of our other available payment options, including bank account payment, payment after delivery, WhatsApp-assisted payment, and other payment methods available on the website. Paystack will be available again soon. We apologise for any inconvenience.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono font-medium flex items-center gap-1">
-                        <Lock className="w-3 h-3 text-emerald-600" />
-                        256-bit SSL Encrypted & Verified
-                      </span>
-                    </div>
-                  </div>
-                </label>
-
                 {/* 2. Bank Transfer */}
                 <label
                   className={`flex items-start gap-3.5 p-4 rounded-2xl border-2 transition-all cursor-pointer ${
@@ -971,148 +914,6 @@ export const CheckoutPage: React.FC = () => {
         </form>
       </div>
 
-      {/* Paystack Interactive Payment Modal */}
-      {showSimulatedModal && activePaystackSession && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div
-            onClick={() => {
-              if (!isProcessing) {
-                setShowSimulatedModal(false);
-                setPaymentError('Payment window closed. You can retry or choose another payment method.');
-              }
-            }}
-            className="absolute inset-0 bg-slate-950/70 backdrop-blur-xs"
-          />
-
-          <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden z-10 border border-slate-200">
-            {/* Paystack Header */}
-            <div className="bg-slate-900 text-white p-5 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-black text-sm">
-                  P
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
-                    <span>Paystack Secure Checkout</span>
-                    <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-mono font-normal">
-                      Verified
-                    </span>
-                  </h3>
-                  <span className="text-[11px] text-slate-400 font-mono">
-                    Ref: {activePaystackSession.reference}
-                  </span>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                disabled={isProcessing}
-                onClick={() => {
-                  setShowSimulatedModal(false);
-                  setPaymentError('Payment was cancelled. Your cart is preserved.');
-                }}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Paystack Body */}
-            <div className="p-6 space-y-5 text-xs">
-              <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 flex items-center justify-between">
-                <div>
-                  <span className="text-slate-400 block text-[11px]">Amount to Pay</span>
-                  <span className="text-xl font-black text-slate-900">
-                    {formatCurrency(activePaystackSession.total_amount, companySettings.currency_symbol)}
-                  </span>
-                </div>
-                <div className="text-right text-[11px] text-slate-500">
-                  <span className="block font-bold text-slate-800">{fullName}</span>
-                  <span>{email || phone}</span>
-                </div>
-              </div>
-
-              {/* Card Form */}
-              <div className="space-y-3">
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Card Number</label>
-                  <input
-                    type="text"
-                    value={simulatedCardNumber}
-                    onChange={(e) => setSimulatedCardNumber(e.target.value)}
-                    placeholder="4084 0800 0000 0000"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-mono font-bold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Expiry Date</label>
-                    <input
-                      type="text"
-                      value={simulatedCardExpiry}
-                      onChange={(e) => setSimulatedCardExpiry(e.target.value)}
-                      placeholder="MM/YY"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-mono text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">CVV</label>
-                    <input
-                      type="password"
-                      maxLength={4}
-                      value={simulatedCardCvv}
-                      onChange={(e) => setSimulatedCardCvv(e.target.value)}
-                      placeholder="123"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-mono text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Pay Button */}
-              <div className="space-y-2 pt-2">
-                <button
-                  type="button"
-                  disabled={isProcessing}
-                  onClick={() => verifyAndFinalizeOrder(activePaystackSession.reference, activePaystackSession)}
-                  className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-                >
-                  {isProcessing ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 animate-spin" />
-                      <span>{processingStatus || 'Verifying Payment...'}</span>
-                    </>
-                  ) : (
-                    <>
-                      <Lock className="w-4 h-4" />
-                      <span>Authorize & Pay {formatCurrency(activePaystackSession.total_amount, companySettings.currency_symbol)}</span>
-                    </>
-                  )}
-                </button>
-
-                <button
-                  type="button"
-                  disabled={isProcessing}
-                  onClick={() => {
-                    setShowSimulatedModal(false);
-                    setIsProcessing(false);
-                    setPaymentError('Transaction was cancelled. No charge was made.');
-                  }}
-                  className="w-full py-2.5 rounded-xl text-slate-500 hover:text-slate-700 text-xs font-semibold cursor-pointer"
-                >
-                  Cancel and Return to Checkout
-                </button>
-              </div>
-
-              <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-400 pt-2 border-t border-slate-100">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Secured by Paystack Payment Infrastructure</span>
-              </div>
-            </div>
-          </div>
         </div>
-      )}
-    </div>
   );
 };
