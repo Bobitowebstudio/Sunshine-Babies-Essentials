@@ -9,6 +9,9 @@ import {
 } from '../types';
 import { INITIAL_CATEGORIES as CATALOG_CATEGORIES, ALL_PRODUCTS } from './catalog';
 
+export const PRIMARY_WHATSAPP_NUMBER = '+234 903 466 5968';
+export const PRIMARY_WHATSAPP_CLEAN = '2349034665968';
+
 export const DEFAULT_COMPANY_SETTINGS: CompanySettings = {
   business_name: 'Sunshine Babies Essentials',
   tagline: "Your baby's comfort is our biggest priority.",
@@ -18,8 +21,8 @@ export const DEFAULT_COMPANY_SETTINGS: CompanySettings = {
     'Sunshine Babies Essentials was created to support parents and families with thoughtfully selected essentials for every step of childhood. Based in Abuja, FCT, Nigeria, we curate top-tier maternity wear, newborn nursery essentials, pediatric-safe feeding gear, cozy infant clothing, and educational essentials. We know how much your little one means to you, and we are committed to making your shopping experience smooth, trustworthy, and joyful.',
   logo_url: '/logo.png',
   favicon_url: '/favicon.png',
-  whatsapp_number: '+2348123456789',
-  phone: '+234 812 345 6789',
+  whatsapp_number: PRIMARY_WHATSAPP_NUMBER,
+  phone: PRIMARY_WHATSAPP_NUMBER,
   email: 'info@sunshinebabies.com',
   support_email: 'info@sunshinebabies.com',
   address: '',
@@ -32,6 +35,10 @@ export const DEFAULT_COMPANY_SETTINGS: CompanySettings = {
   instagram_url: 'https://instagram.com/sunshinebabiesessentials',
   facebook_url: 'https://facebook.com/sunshinebabiesessentials',
   tiktok_url: 'https://tiktok.com/@sunshinebabiesessentials',
+  twitter_url: 'https://x.com/sunshinebabies',
+  youtube_url: '',
+  hero_banner_image: '',
+  footer_text: 'Your trusted destination for premium baby and maternity essentials in Abuja and across Nigeria.',
   primary_color: '#F59E0B', // Radiant sunshine gold
   secondary_color: '#1E293B',
   accent_color: '#EC4899', // Pink accent matching the logo badge

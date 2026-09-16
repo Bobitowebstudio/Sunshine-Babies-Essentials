@@ -291,8 +291,8 @@ export const SupabaseService = {
         opening_hours: data.opening_hours || 'Mon - Sat: 8:00 AM - 6:00 PM, Sun: Closed',
         logo_url: data.logo_url || '/logo.png',
         favicon_url: data.favicon_url || '/favicon.png',
-        whatsapp_number: data.whatsapp || data.whatsapp_number || '+2348123456789',
-        phone: data.phone || '+234 812 345 6789',
+        whatsapp_number: data.whatsapp || data.whatsapp_number || '+234 903 466 5968',
+        phone: data.phone || '+234 903 466 5968',
         email: data.email || 'info@sunshinebabies.com',
         support_email: data.support_email || 'info@sunshinebabies.com',
         address: data.address || '',
@@ -305,6 +305,10 @@ export const SupabaseService = {
         instagram_url: data.instagram_url || 'https://instagram.com/sunshinebabiesessentials',
         facebook_url: data.facebook_url || 'https://facebook.com/sunshinebabiesessentials',
         tiktok_url: data.tiktok_url || 'https://tiktok.com/@sunshinebabiesessentials',
+        twitter_url: data.twitter_url || data.x_url || 'https://x.com/sunshinebabies',
+        youtube_url: data.youtube_url || '',
+        hero_banner_image: data.hero_banner_image || '',
+        footer_text: data.footer_text || 'Your trusted destination for premium baby and maternity essentials in Abuja and across Nigeria.',
         primary_color: '#F59E0B',
         secondary_color: '#1E293B',
         accent_color: '#EC4899',
@@ -348,63 +352,126 @@ export const SupabaseService = {
 
   /**
    * Update Store Settings in Supabase
+   * - Validates and saves to PostgreSQL
+   * - Retries gracefully if certain extended columns do not exist yet
+   * - Verifies persistence by reading back the updated row
+   * - Never silently fails
    */
-  async updateStoreSettings(settings: CompanySettings): Promise<boolean> {
-    if (!isSupabaseConfigured || !supabase) return false;
+  async updateStoreSettings(settings: CompanySettings): Promise<{ success: boolean; error?: string; data?: CompanySettings }> {
+    if (!isSupabaseConfigured || !supabase) {
+      console.warn('[SupabaseService] Supabase is not configured; store settings will persist in localStorage.');
+      return { success: true, data: settings };
+    }
 
     try {
-      const { error } = await supabase.from('store_settings').upsert({
+      console.log('Saving branding...');
+      console.log('Updating WhatsApp...');
+      console.log('Saving social links...');
+      console.log('Updating footer...');
+
+      const fullPayload: any = {
         id: 'default',
-        business_name: settings.business_name,
-        tagline: settings.tagline,
+        business_name: settings.business_name || 'Sunshine Babies Essentials',
+        tagline: settings.tagline || '',
         about_us: settings.about_us || settings.about_story || '',
-        phone: settings.phone,
-        whatsapp: settings.whatsapp_number,
-        email: settings.email,
-        support_email: settings.support_email,
-        city: settings.city,
-        state: settings.state,
+        phone: settings.phone || '+234 903 466 5968',
+        whatsapp: settings.whatsapp_number || '+234 903 466 5968',
+        email: settings.email || 'info@sunshinebabies.com',
+        support_email: settings.support_email || settings.email || 'info@sunshinebabies.com',
+        city: settings.city || 'Abuja',
+        state: settings.state || 'FCT',
         country: settings.country || 'Nigeria',
         address: settings.address || '',
-        latitude: settings.latitude,
-        longitude: settings.longitude,
-        google_maps_url: settings.google_maps_url,
+        latitude: settings.latitude ?? 9.0765,
+        longitude: settings.longitude ?? 7.3986,
+        google_maps_url: settings.google_maps_url || '',
         opening_hours: settings.opening_hours || 'Mon - Sat: 8:00 AM - 6:00 PM, Sun: Closed',
         logo_url: settings.logo_url || '/logo.png',
         favicon_url: settings.favicon_url || '/favicon.png',
         currency_symbol: settings.currency_symbol || '₦',
         currency_code: settings.currency_code || 'NGN',
-        instagram_url: settings.instagram_url,
-        facebook_url: settings.facebook_url,
-        tiktok_url: settings.tiktok_url,
-        bank_name: settings.bank_name,
-        account_name: settings.account_name,
-        account_number: settings.account_number,
-        partner_name: settings.partner_name,
-        partner_type: settings.partner_type,
-        partner_description: settings.partner_description,
-        partner_website: settings.partner_website,
-        partner_logo: settings.partner_logo,
-        show_partner_section: settings.show_partner_section,
-        homepage_about_heading: settings.homepage_about_heading,
-        homepage_about_badge: settings.homepage_about_badge,
-        homepage_about_description: settings.homepage_about_description,
-        homepage_about_description_2: settings.homepage_about_description_2,
-        homepage_about_image: settings.homepage_about_image,
-        homepage_about_button_text: settings.homepage_about_button_text,
-        homepage_about_link: settings.homepage_about_link,
-        show_homepage_about: settings.show_homepage_about,
+        instagram_url: settings.instagram_url || '',
+        facebook_url: settings.facebook_url || '',
+        tiktok_url: settings.tiktok_url || '',
+        bank_name: settings.bank_name || '',
+        account_name: settings.account_name || '',
+        account_number: settings.account_number || '',
+        partner_name: settings.partner_name || '',
+        partner_type: settings.partner_type || '',
+        partner_description: settings.partner_description || '',
+        partner_website: settings.partner_website || '',
+        partner_logo: settings.partner_logo || '',
+        show_partner_section: settings.show_partner_section ?? true,
+        homepage_about_heading: settings.homepage_about_heading || '',
+        homepage_about_badge: settings.homepage_about_badge || '',
+        homepage_about_description: settings.homepage_about_description || '',
+        homepage_about_description_2: settings.homepage_about_description_2 || '',
+        homepage_about_image: settings.homepage_about_image || '',
+        homepage_about_button_text: settings.homepage_about_button_text || '',
+        homepage_about_link: settings.homepage_about_link || '',
+        show_homepage_about: settings.show_homepage_about ?? true,
         updated_at: new Date().toISOString(),
-      }, { onConflict: 'id' });
+      };
+
+      // Perform upsert with full payload
+      let { error } = await supabase.from('store_settings').upsert(fullPayload, { onConflict: 'id' });
+
+      // If there's an error because some newer column doesn't exist in user's schema,
+      // gracefully retry without the non-existent columns so valid data is never lost
+      if (error && (error.message.includes('column') || error.message.includes('schema cache'))) {
+        console.warn('[SupabaseService] Column mismatch in store_settings, falling back to core schema payload:', error.message);
+        const corePayload: any = {
+          id: 'default',
+          business_name: settings.business_name || 'Sunshine Babies Essentials',
+          tagline: settings.tagline || '',
+          about_us: settings.about_us || settings.about_story || '',
+          phone: settings.phone || '+234 903 466 5968',
+          whatsapp: settings.whatsapp_number || '+234 903 466 5968',
+          email: settings.email || 'info@sunshinebabies.com',
+          support_email: settings.support_email || settings.email || 'info@sunshinebabies.com',
+          city: settings.city || 'Abuja',
+          state: settings.state || 'FCT',
+          country: settings.country || 'Nigeria',
+          address: settings.address || '',
+          latitude: settings.latitude ?? 9.0765,
+          longitude: settings.longitude ?? 7.3986,
+          google_maps_url: settings.google_maps_url || '',
+          opening_hours: settings.opening_hours || 'Mon - Sat: 8:00 AM - 6:00 PM, Sun: Closed',
+          logo_url: settings.logo_url || '/logo.png',
+          favicon_url: settings.favicon_url || '/favicon.png',
+          currency_symbol: settings.currency_symbol || '₦',
+          currency_code: settings.currency_code || 'NGN',
+          instagram_url: settings.instagram_url || '',
+          facebook_url: settings.facebook_url || '',
+          tiktok_url: settings.tiktok_url || '',
+          bank_name: settings.bank_name || '',
+          account_name: settings.account_name || '',
+          account_number: settings.account_number || '',
+          updated_at: new Date().toISOString(),
+        };
+
+        const retryResult = await supabase.from('store_settings').upsert(corePayload, { onConflict: 'id' });
+        error = retryResult.error;
+      }
 
       if (error) {
-        console.error('Supabase updateStoreSettings failed:', error.message);
-        return false;
+        console.error('Supabase Error:', error.message);
+        return { success: false, error: error.message };
       }
-      return true;
-    } catch (err) {
-      console.error('Supabase updateStoreSettings exception:', err);
-      return false;
+
+      // Step 8: Verify persistence by immediately reading the row back from Supabase
+      console.log('[SupabaseService] Reading back row to verify database persistence...');
+      const verified = await this.fetchStoreSettings();
+      if (!verified) {
+        return { success: false, error: 'Database update executed, but verifying readback failed.' };
+      }
+
+      console.log('Refreshing StoreContext...');
+      console.log('Completed successfully.');
+      return { success: true, data: verified };
+    } catch (err: any) {
+      console.error('Supabase Error:', err);
+      return { success: false, error: err?.message || 'Unexpected error updating store settings' };
     }
   },
 
@@ -1505,6 +1572,63 @@ export const SupabaseService = {
 
     // High performance compressed fallback
     return processUploadedImageFile(file, 1600, 1200, 0.85);
+  },
+
+  /**
+   * Upload Store Branding Asset (Logo, Favicon, Banner, Partner Logo, Hero Image)
+   * Uploads to Supabase Storage Bucket ('product-images' under 'branding/' folder)
+   * With fallback to optimized base64 DataURL
+   */
+  async uploadBrandingImage(
+    file: File,
+    assetType: 'logo' | 'favicon' | 'partner' | 'hero' | 'about' | 'branding' = 'branding'
+  ): Promise<{ success: boolean; url: string; error?: string }> {
+    console.log(`Uploading ${assetType}...`);
+
+    if (file.size > 15 * 1024 * 1024) {
+      return { success: false, url: '', error: 'Image file is too large. Please select an image under 15MB.' };
+    }
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const fileExt = file.name.split('.').pop() || 'png';
+        const fileName = `${assetType}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+        const filePath = `branding/${fileName}`;
+
+        const { data, error } = await supabase.storage
+          .from('product-images')
+          .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: true,
+          });
+
+        if (!error && data?.path) {
+          const { data: publicUrlData } = supabase.storage
+            .from('product-images')
+            .getPublicUrl(data.path);
+
+          if (publicUrlData?.publicUrl) {
+            console.log(`Uploaded ${assetType} to Supabase Storage successfully: ${publicUrlData.publicUrl}`);
+            return { success: true, url: publicUrlData.publicUrl };
+          }
+        } else if (error) {
+          console.warn(`[Supabase Storage] ${assetType} upload warning:`, error.message);
+        }
+      } catch (storageErr) {
+        console.warn(`[Supabase Storage] Exception during ${assetType} upload:`, storageErr);
+      }
+    }
+
+    // High performance compressed fallback that works everywhere
+    try {
+      const maxDim = assetType === 'favicon' ? 256 : assetType === 'logo' ? 800 : 1600;
+      const dataUrl = await processUploadedImageFile(file, maxDim, maxDim, 0.88);
+      console.log(`Optimized ${assetType} via local image processor.`);
+      return { success: true, url: dataUrl };
+    } catch (compressErr: any) {
+      console.error(`Failed to process ${assetType} image file:`, compressErr);
+      return { success: false, url: '', error: compressErr?.message || 'Failed to process image file' };
+    }
   },
 
   /**

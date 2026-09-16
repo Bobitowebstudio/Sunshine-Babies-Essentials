@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { StorageService } from '../lib/storage';
 import {
   ActivePage,
@@ -51,6 +51,7 @@ interface StoreContextType {
   supabaseSyncStatus: 'connected' | 'disconnected' | 'syncing' | 'error';
   syncAllToSupabase: () => Promise<{ success: boolean; message: string; counts?: any }>;
   uploadProductImage: (file: File) => Promise<string>;
+  uploadBrandingImage: (file: File, assetType?: 'logo' | 'favicon' | 'partner' | 'hero' | 'about' | 'branding') => Promise<{ success: boolean; url: string; error?: string }>;
 
   // View state
   activePage: ActivePage;
@@ -118,7 +119,7 @@ interface StoreContextType {
   deleteDeliveryLocation: (locationId: string) => void;
 
   // Settings & Inquiries
-  updateCompanySettings: (settings: CompanySettings) => void;
+  updateCompanySettings: (settings: CompanySettings) => Promise<{ success: boolean; error?: string; data?: CompanySettings }>;
   submitInquiry: (inquiry: Omit<Inquiry, 'id' | 'created_at' | 'status'>) => void;
   updateInquiryStatus: (id: string, status: InquiryStatus, notes?: string) => void;
 
@@ -894,10 +895,48 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   // Settings & Inquiries with Supabase
-  const updateCompanySettings = (newSettings: CompanySettings) => {
+  const saveSettingsSeqRef = useRef<number>(0);
+
+  const updateCompanySettings = async (
+    newSettings: CompanySettings
+  ): Promise<{ success: boolean; error?: string; data?: CompanySettings }> => {
+    const currentSeq = ++saveSettingsSeqRef.current;
+    console.log(`[StoreContext] Initiating store settings save (seq #${currentSeq})...`);
+
+    // Step A: Immediately persist to local storage backup to eliminate data loss
     setCompanySettings(newSettings);
+    StorageService.saveSettings(newSettings);
+
+    // Step B: If Supabase is configured, transmit to cloud database and verify persistence
     if (isSupabaseConfigured) {
-      SupabaseService.updateStoreSettings(newSettings);
+      try {
+        const result = await SupabaseService.updateStoreSettings(newSettings);
+
+        // Race condition check: ensure older request does not overwrite newer state
+        if (currentSeq !== saveSettingsSeqRef.current) {
+          console.warn(`[StoreContext] Save seq #${currentSeq} superseded by newer seq #${saveSettingsSeqRef.current}. Discarding outdated response.`);
+          return { success: true, data: newSettings };
+        }
+
+        if (!result.success) {
+          console.error('[StoreContext] Supabase Error:', result.error);
+          return { success: false, error: result.error || 'Failed to save to database.' };
+        }
+
+        // Apply verified readback from Supabase to guarantee exact database alignment
+        if (result.data) {
+          setCompanySettings(result.data);
+          StorageService.saveSettings(result.data);
+        }
+
+        return { success: true, data: result.data || newSettings };
+      } catch (err: any) {
+        console.error('[StoreContext] Save exception:', err);
+        return { success: false, error: err?.message || 'Database connection error during save.' };
+      }
+    } else {
+      console.log('[StoreContext] Supabase not configured in .env. Stored configuration saved to local storage.');
+      return { success: true, data: newSettings };
     }
   };
 
@@ -1166,6 +1205,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return SupabaseService.uploadProductImage(file);
   };
 
+  const uploadBrandingImage = async (
+    file: File,
+    assetType: 'logo' | 'favicon' | 'partner' | 'hero' | 'about' | 'branding' = 'branding'
+  ): Promise<{ success: boolean; url: string; error?: string }> => {
+    return SupabaseService.uploadBrandingImage(file, assetType);
+  };
+
   return (
     <StoreContext.Provider
       value={{
@@ -1189,6 +1235,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         supabaseSyncStatus,
         syncAllToSupabase,
         uploadProductImage,
+        uploadBrandingImage,
         activePage,
         adminTab,
         isAdmin: isAuthorizedAdmin,

@@ -548,7 +548,7 @@ export const CheckoutPage: React.FC = () => {
                     required
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="e.g. 08123456789"
+                    placeholder="e.g. 09034665968"
                     className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-amber-500"
                   />
                   <span className="text-[10px] text-slate-400 mt-1 block">
@@ -679,13 +679,24 @@ export const CheckoutPage: React.FC = () => {
                         <CreditCard className="w-4 h-4 text-amber-600" />
                         <span>Online Payment (Paystack Gateway)</span>
                       </div>
-                      <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
-                        Instant Verification
+                      <span className="text-[10px] bg-amber-100 text-amber-900 border border-amber-300 font-bold px-2 py-0.5 rounded-full">
+                        Temporarily Unavailable
                       </span>
                     </div>
                     <p className="text-[11px] text-slate-500 mt-1">
                       Pay securely with Nigerian Debit Card (Mastercard, Visa, Verve), Bank Transfer, Apple Pay, or USSD via Paystack.
                     </p>
+                    <div className="mt-2 p-2.5 rounded-xl bg-amber-50 border border-amber-200/80 text-[11px] text-amber-900 flex items-start gap-2">
+                      <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                      <div>
+                        <strong className="font-bold block text-amber-950">
+                          NOTICE: Paystack payment is temporarily unavailable.
+                        </strong>
+                        <p className="text-[10.5px] text-amber-800/90 mt-0.5 leading-normal">
+                          Please use any of our other available payment options, including bank account payment, payment after delivery, WhatsApp-assisted payment, and other payment methods available on the website. Paystack will be available again soon. We apologise for any inconvenience.
+                        </p>
+                      </div>
+                    </div>
                     <div className="flex items-center gap-2 mt-2">
                       <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono font-medium flex items-center gap-1">
                         <Lock className="w-3 h-3 text-emerald-600" />

@@ -15,14 +15,67 @@ export function formatWhatsAppMessage(template: string, vars: Record<string, str
   return result;
 }
 
-export function cleanPhoneNumber(phone: string): string {
-  return phone.replace(/[^0-9+]/g, '').replace(/^0/, '234').replace(/^\+/, '');
+export const PRIMARY_WHATSAPP_NUMBER = '+234 903 466 5968';
+export const PRIMARY_WHATSAPP_CLEAN = '2349034665968';
+
+export const DEFAULT_WHATSAPP_NUMBER = PRIMARY_WHATSAPP_NUMBER;
+export const DEFAULT_WHATSAPP_CLEAN = PRIMARY_WHATSAPP_CLEAN;
+
+export function cleanPhoneNumber(phone?: string): string {
+  if (!phone || typeof phone !== 'string' || !phone.trim()) {
+    return PRIMARY_WHATSAPP_CLEAN;
+  }
+  const cleaned = phone.replace(/[^0-9+]/g, '').replace(/^0/, '234').replace(/^\+/, '');
+  // Ignore old placeholder dummy numbers
+  if (
+    cleaned.includes('8123456789') ||
+    cleaned.includes('812345') ||
+    cleaned.length < 7
+  ) {
+    return PRIMARY_WHATSAPP_CLEAN;
+  }
+  return cleaned || PRIMARY_WHATSAPP_CLEAN;
 }
 
-export function getWhatsAppUrl(phone: string, text: string): string {
-  const clean = cleanPhoneNumber(phone);
+/**
+ * Generates a WhatsApp URL directing to the store's configured or primary WhatsApp number.
+ * Defaults cleanly to https://wa.me/2349034665968.
+ */
+export function getWhatsAppUrl(phoneOrText?: string, text?: string): string {
+  let targetNumber = PRIMARY_WHATSAPP_CLEAN;
+  let message = '';
+
+  if (phoneOrText && text !== undefined) {
+    // Called as getWhatsAppUrl(phone, text)
+    targetNumber = cleanPhoneNumber(phoneOrText);
+    message = text || '';
+  } else if (phoneOrText && text === undefined) {
+    // Called with 1 argument: could be phone OR message
+    if (phoneOrText.startsWith('+') || /^\d[\d\s-]{6,}$/.test(phoneOrText.trim())) {
+      targetNumber = cleanPhoneNumber(phoneOrText);
+    } else {
+      targetNumber = PRIMARY_WHATSAPP_CLEAN;
+      message = phoneOrText;
+    }
+  }
+
+  if (!message || !message.trim()) {
+    return `https://wa.me/${targetNumber}`;
+  }
+  return `https://wa.me/${targetNumber}?text=${encodeURIComponent(message.trim())}`;
+}
+
+/**
+ * Generates a WhatsApp URL directing to a specific customer phone number (used in admin replies).
+ */
+export function getCustomerWhatsAppUrl(customerPhone: string, text?: string): string {
+  const clean = customerPhone ? customerPhone.replace(/[^0-9+]/g, '').replace(/^0/, '234').replace(/^\+/, '') : PRIMARY_WHATSAPP_CLEAN;
+  const target = clean && clean.length >= 7 ? clean : PRIMARY_WHATSAPP_CLEAN;
+  if (!text || !text.trim()) {
+    return `https://wa.me/${target}`;
+  }
   const encoded = encodeURIComponent(text);
-  return `https://wa.me/${clean}?text=${encoded}`;
+  return `https://wa.me/${target}?text=${encoded}`;
 }
 
 export function generateOrderNumber(): string {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from '../../context/StoreContext';
 
 const DEFAULT_BRAND_LOGO = '/logo.png';
@@ -21,9 +21,6 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
   const { companySettings } = useStore();
   const [imgError, setImgError] = useState(false);
 
-  // Desktop target for main header (size="md"): 280–320px width, 90–115px height
-  // Tablet size: 200–230px width
-  // Mobile size: 150–180px width
   const sizeClasses = {
     sm: 'w-[130px] sm:w-[150px] h-auto object-contain',
     md: 'w-[155px] sm:w-[190px] md:w-[220px] lg:w-[290px] xl:w-[315px] h-auto max-h-[90px] lg:max-h-[115px] object-contain',
@@ -34,6 +31,10 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
   const logoSource = companySettings.logo_url && companySettings.logo_url.trim().length > 0
     ? companySettings.logo_url
     : DEFAULT_BRAND_LOGO;
+
+  useEffect(() => {
+    setImgError(false);
+  }, [logoSource]);
 
   return (
     <div

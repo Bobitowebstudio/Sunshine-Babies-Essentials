@@ -34,7 +34,7 @@ import {
   Maximize2,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
-import { formatCurrency, calculateDiscountPercent } from '../../lib/utils';
+import { formatCurrency, calculateDiscountPercent, getCustomerWhatsAppUrl } from '../../lib/utils';
 import { Product, AgeGroup, ProductVariantItem, ProductImageViews, PRODUCT_AGE_GROUP_OPTIONS, AGE_GROUP_FILTER_OPTIONS } from '../../types';
 import { getProductPlaceholderSvg } from '../../lib/placeholders';
 
@@ -1218,11 +1218,10 @@ export const AdminProducts: React.FC = () => {
                   </div>
 
                   <a
-                    href={`https://wa.me/${req.phone.replace(/[^0-9]/g, '')}?text=Hello%20${encodeURIComponent(
-                      req.customer_name
-                    )}!%20Good%20news%20from%20${encodeURIComponent(
-                      companySettings.business_name
-                    )}!%20${encodeURIComponent(req.product_name)}%20is%20now%20back%20in%20stock!`}
+                    href={getCustomerWhatsAppUrl(
+                      req.phone,
+                      `Hello ${req.customer_name}! 👋 Good news from ${companySettings.business_name}! ${req.product_name} is now back in stock!`
+                    )}
                     target="_blank"
                     rel="noreferrer"
                     className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs self-start sm:self-auto transition-colors"

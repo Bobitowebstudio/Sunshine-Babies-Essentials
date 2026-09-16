@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { BrandLogo } from './BrandLogo';
+import { AnnouncementBar } from './AnnouncementBar';
 import { formatCurrency, getWhatsAppUrl } from '../../lib/utils';
 import { AgeGroup, AGE_GROUP_FILTER_OPTIONS } from '../../types';
 
@@ -99,6 +100,9 @@ export const Header: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white shadow-xs">
+      {/* Professional Announcement Bar */}
+      <AnnouncementBar />
+
       {/* Main Navbar */}
       <div className="max-w-7xl mx-auto px-4 py-2.5 sm:py-3 lg:py-3.5 flex items-center justify-between gap-3 sm:gap-4 lg:gap-6">
         {/* Mobile Menu Toggle & Brand Logo */}

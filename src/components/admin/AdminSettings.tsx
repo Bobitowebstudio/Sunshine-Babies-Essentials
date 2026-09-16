@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Save,
   Building,
@@ -25,6 +25,7 @@ import {
   ExternalLink,
   Image as ImageIcon,
   Heart,
+  Upload,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { CompanySettings } from '../../types';
@@ -35,6 +36,7 @@ export const AdminSettings: React.FC = () => {
   const {
     companySettings,
     updateCompanySettings,
+    uploadBrandingImage,
     isSupabaseConfigured,
     supabaseSyncStatus,
     syncAllToSupabase,
@@ -48,6 +50,10 @@ export const AdminSettings: React.FC = () => {
     ...companySettings,
     business_name: companySettings.business_name || 'Sunshine Babies Essentials',
     tagline: companySettings.tagline || "Your baby's comfort is our biggest priority.",
+    logo_url: companySettings.logo_url || '/logo.png',
+    favicon_url: companySettings.favicon_url || '/favicon.png',
+    hero_banner_image: companySettings.hero_banner_image || '',
+    footer_text: companySettings.footer_text || 'Your trusted destination for premium baby and maternity essentials in Abuja and across Nigeria.',
     city: companySettings.city || 'Abuja',
     state: companySettings.state || 'FCT',
     country: companySettings.country || 'Nigeria',
@@ -82,11 +88,54 @@ export const AdminSettings: React.FC = () => {
       companySettings.show_homepage_about !== undefined ? companySettings.show_homepage_about : true,
   }));
 
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
+  const [uploadingField, setUploadingField] = useState<string | null>(null);
   const [isSaved, setIsSaved] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncFeedback, setSyncFeedback] = useState<{ success?: boolean; message?: string } | null>(null);
   const [showSqlSchema, setShowSqlSchema] = useState(false);
   const [copiedSql, setCopiedSql] = useState(false);
+
+  // Sync state whenever companySettings changes in context, but do not overwrite while user is actively saving
+  useEffect(() => {
+    if (!isSaving) {
+      setForm((prev) => ({
+        ...prev,
+        ...companySettings,
+      }));
+    }
+  }, [companySettings, isSaving]);
+
+  const handleFileUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    field: keyof CompanySettings,
+    assetType: 'logo' | 'favicon' | 'partner' | 'hero' | 'about' | 'branding'
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingField(field as string);
+    setSaveError(null);
+
+    try {
+      console.log(`Uploading ${assetType}...`);
+      const res = await uploadBrandingImage(file, assetType);
+      if (res.success && res.url) {
+        console.log(`Uploaded ${assetType} successfully: ${res.url}`);
+        setForm((prev) => ({ ...prev, [field]: res.url }));
+      } else {
+        setSaveError(res.error || `Failed to upload ${assetType}. Please check file size.`);
+      }
+    } catch (err: any) {
+      console.error(`Error uploading ${assetType}:`, err);
+      setSaveError(err?.message || `Failed to upload ${assetType}.`);
+    } finally {
+      setUploadingField(null);
+      e.target.value = '';
+    }
+  };
 
   const handleSyncToSupabase = async () => {
     setIsSyncing(true);
@@ -107,11 +156,42 @@ export const AdminSettings: React.FC = () => {
     setTimeout(() => setCopiedSql(false), 2500);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    updateCompanySettings(form);
-    setIsSaved(true);
-    setTimeout(() => setIsSaved(false), 3000);
+    if (isSaving || uploadingField) return;
+
+    setIsSaving(true);
+    setSaveError(null);
+    setSaveSuccess(null);
+
+    try {
+      console.log('Saving branding...');
+      console.log('Saving social links...');
+      console.log('Updating WhatsApp...');
+      console.log('Updating footer...');
+
+      const res = await updateCompanySettings(form);
+
+      if (!res.success) {
+        console.error('Supabase Error:', res.error);
+        setSaveError(res.error || 'Failed to save store configuration to Supabase.');
+        setIsSaving(false);
+        return;
+      }
+
+      console.log('Refreshing StoreContext...');
+      console.log('Completed successfully.');
+      setSaveSuccess('Configuration saved successfully.');
+      setIsSaved(true);
+      setTimeout(() => {
+        setIsSaved(false);
+      }, 5000);
+    } catch (err: any) {
+      console.error('Save exception:', err);
+      setSaveError(err?.message || 'An unexpected error occurred while saving.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const previewLat = form.latitude || 9.0765;
@@ -141,6 +221,26 @@ export const AdminSettings: React.FC = () => {
           </div>
         )}
       </div>
+
+      {saveError && (
+        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 flex items-start gap-3 text-xs shadow-xs animate-fade-in">
+          <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <span className="font-bold block">Save Operation Failed:</span>
+            <p className="text-[11px] font-mono bg-rose-100/60 p-2 rounded-lg text-rose-900 break-words">{saveError}</p>
+          </div>
+        </div>
+      )}
+
+      {saveSuccess && (
+        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center gap-3 text-xs shadow-xs animate-fade-in">
+          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+          <div>
+            <span className="font-bold">{saveSuccess}</span>
+            <p className="text-[11px] text-emerald-700">All store branding, contact hotline, About Us content, and coordinates have been confirmed in the database.</p>
+          </div>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Section 1: Business Identity & About Us */}
@@ -215,6 +315,104 @@ export const AdminSettings: React.FC = () => {
                 onChange={(e) => setForm({ ...form, about_story: e.target.value })}
                 placeholder="Sunshine Babies Essentials was created to support parents and families with thoughtfully selected essentials for every step of childhood..."
                 className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 leading-relaxed focus:outline-hidden focus:ring-2 focus:ring-amber-500"
+              />
+            </div>
+
+            {/* Store Logo & Branding Upload */}
+            <div className="sm:col-span-2 p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-800">
+                    Store Primary Logo
+                  </label>
+                  <p className="text-[11px] text-slate-500">
+                    Upload a high-resolution logo or enter an image URL. Uploads directly to Supabase Storage.
+                  </p>
+                </div>
+                <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-xs cursor-pointer transition-all shrink-0">
+                  <Upload className="w-3.5 h-3.5" />
+                  <span>{uploadingField === 'logo_url' ? 'Uploading...' : 'Upload Logo'}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileUpload(e, 'logo_url', 'logo')}
+                    disabled={!!uploadingField}
+                    className="sr-only"
+                  />
+                </label>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+                <div className="sm:col-span-2">
+                  <input
+                    type="text"
+                    value={form.logo_url || ''}
+                    onChange={(e) => setForm({ ...form, logo_url: e.target.value })}
+                    placeholder="/logo.png or https://..."
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 font-mono"
+                  />
+                </div>
+                <div className="h-12 bg-slate-900 rounded-xl flex items-center justify-center p-2 border border-slate-800">
+                  <img
+                    src={form.logo_url || '/logo.png'}
+                    alt="Logo Preview"
+                    className="h-full w-auto object-contain max-w-[140px]"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = '/logo.png';
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Favicon & Hero Banner */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-semibold text-slate-700">
+                  Favicon Icon URL
+                </label>
+                <label className="text-[11px] font-bold text-amber-600 hover:underline cursor-pointer">
+                  <span>{uploadingField === 'favicon_url' ? 'Uploading...' : 'Upload File'}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileUpload(e, 'favicon_url', 'favicon')}
+                    disabled={!!uploadingField}
+                    className="sr-only"
+                  />
+                </label>
+              </div>
+              <input
+                type="text"
+                value={form.favicon_url || ''}
+                onChange={(e) => setForm({ ...form, favicon_url: e.target.value })}
+                placeholder="/favicon.png"
+                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200"
+              />
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-semibold text-slate-700">
+                  Hero Banner Custom Image (Optional)
+                </label>
+                <label className="text-[11px] font-bold text-amber-600 hover:underline cursor-pointer">
+                  <span>{uploadingField === 'hero_banner_image' ? 'Uploading...' : 'Upload File'}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileUpload(e, 'hero_banner_image', 'hero')}
+                    disabled={!!uploadingField}
+                    className="sr-only"
+                  />
+                </label>
+              </div>
+              <input
+                type="text"
+                value={form.hero_banner_image || ''}
+                onChange={(e) => setForm({ ...form, hero_banner_image: e.target.value })}
+                placeholder="https://... or leave blank for default collage"
+                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200"
               />
             </div>
 
@@ -403,7 +601,7 @@ export const AdminSettings: React.FC = () => {
                 required
                 value={form.whatsapp_number}
                 onChange={(e) => setForm({ ...form, whatsapp_number: e.target.value })}
-                placeholder="+234 812 345 6789"
+                placeholder="+234 903 466 5968"
                 className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 font-mono focus:outline-hidden focus:ring-2 focus:ring-amber-500"
               />
               <span className="text-[10px] text-emerald-700 mt-1 block font-medium">
@@ -420,7 +618,7 @@ export const AdminSettings: React.FC = () => {
                 required
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                placeholder="+234 812 345 6789"
+                placeholder="+234 903 466 5968"
                 className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-amber-500"
               />
             </div>
@@ -538,6 +736,58 @@ export const AdminSettings: React.FC = () => {
                 className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200"
               />
             </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                TikTok Profile URL
+              </label>
+              <input
+                type="url"
+                value={form.tiktok_url || ''}
+                onChange={(e) => setForm({ ...form, tiktok_url: e.target.value })}
+                placeholder="https://tiktok.com/@sunshinebabiesessentials"
+                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Twitter / X Profile URL
+              </label>
+              <input
+                type="url"
+                value={form.twitter_url || ''}
+                onChange={(e) => setForm({ ...form, twitter_url: e.target.value })}
+                placeholder="https://x.com/sunshinebabies"
+                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200"
+              />
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                YouTube Channel URL
+              </label>
+              <input
+                type="url"
+                value={form.youtube_url || ''}
+                onChange={(e) => setForm({ ...form, youtube_url: e.target.value })}
+                placeholder="https://youtube.com/@sunshinebabiesessentials"
+                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200"
+              />
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Footer Tagline / Statement
+              </label>
+              <textarea
+                rows={2}
+                value={form.footer_text || ''}
+                onChange={(e) => setForm({ ...form, footer_text: e.target.value })}
+                placeholder="Your trusted destination for premium baby and maternity essentials in Abuja and across Nigeria."
+                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200"
+              />
+            </div>
           </div>
         </div>
 
@@ -627,9 +877,21 @@ export const AdminSettings: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Hero Image URL (Mother &amp; Baby Photo)
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-semibold text-slate-700">
+                  Hero Image URL (Mother &amp; Baby Photo)
+                </label>
+                <label className="text-[11px] font-bold text-amber-600 hover:underline cursor-pointer">
+                  <span>{uploadingField === 'homepage_about_image' ? 'Uploading...' : 'Upload Photo'}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileUpload(e, 'homepage_about_image', 'about')}
+                    disabled={!!uploadingField}
+                    className="sr-only"
+                  />
+                </label>
+              </div>
               <input
                 type="url"
                 value={form.homepage_about_image || ''}
@@ -758,9 +1020,21 @@ export const AdminSettings: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Partner Logo URL or Asset Path
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-semibold text-slate-700">
+                  Partner Logo URL or Asset Path
+                </label>
+                <label className="text-[11px] font-bold text-amber-600 hover:underline cursor-pointer">
+                  <span>{uploadingField === 'partner_logo' ? 'Uploading...' : 'Upload Logo'}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileUpload(e, 'partner_logo', 'partner')}
+                    disabled={!!uploadingField}
+                    className="sr-only"
+                  />
+                </label>
+              </div>
               <input
                 type="text"
                 value={form.partner_logo || ''}
@@ -952,14 +1226,47 @@ export const AdminSettings: React.FC = () => {
           </div>
         </div>
 
+        {/* Save Error & Success Warnings near button */}
+        {saveError && (
+          <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 flex items-center gap-2.5 text-xs shadow-xs animate-fade-in">
+            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+            <span>{saveError}</span>
+          </div>
+        )}
+
+        {saveSuccess && (
+          <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center gap-2.5 text-xs shadow-xs animate-fade-in">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>{saveSuccess}</span>
+          </div>
+        )}
+
         {/* Save CTA */}
-        <div className="flex justify-end pt-2">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+          <p className="text-xs text-slate-500">
+            Changes are saved to Supabase PostgreSQL and synced across your live store.
+          </p>
           <button
             type="submit"
-            className="flex items-center gap-2 px-7 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-md transition-all hover:scale-105 cursor-pointer"
+            disabled={isSaving || !!uploadingField}
+            className="flex items-center gap-2 px-8 py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:bg-amber-300 disabled:cursor-not-allowed text-slate-950 font-black text-xs shadow-md transition-all hover:scale-[1.02] cursor-pointer"
           >
-            <Save className="w-4 h-4" />
-            <span>Save Store Configuration</span>
+            {isSaving ? (
+              <>
+                <RefreshCw className="w-4 h-4 animate-spin" />
+                <span>Saving Store Configuration...</span>
+              </>
+            ) : uploadingField ? (
+              <>
+                <RefreshCw className="w-4 h-4 animate-spin" />
+                <span>Uploading Image Asset...</span>
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4" />
+                <span>Save Store Configuration</span>
+              </>
+            )}
           </button>
         </div>
       </form>

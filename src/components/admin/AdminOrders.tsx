@@ -9,7 +9,7 @@ import {
   Package,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
-import { formatCurrency, getWhatsAppUrl } from '../../lib/utils';
+import { formatCurrency, getCustomerWhatsAppUrl } from '../../lib/utils';
 import { Order, OrderStatus, PaymentStatus } from '../../types';
 import { getProductPlaceholderSvg } from '../../lib/placeholders';
 
@@ -54,7 +54,7 @@ export const AdminOrders: React.FC = () => {
     } else {
       msg += `Status: ${ord.order_status}.\nTotal: ${formatCurrency(ord.total_amount || 0, companySettings.currency_symbol)}`;
     }
-    return getWhatsAppUrl(customerPhone, msg);
+    return getCustomerWhatsAppUrl(customerPhone, msg);
   };
 
   const statusOptions: OrderStatus[] = [

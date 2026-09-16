@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { MessageSquare, MessageCircle, Mail, CheckCircle2, Clock, Trash2 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
-import { getWhatsAppUrl } from '../../lib/utils';
+import { getCustomerWhatsAppUrl } from '../../lib/utils';
 import { Inquiry } from '../../types';
 
 export const AdminInquiries: React.FC = () => {
@@ -67,7 +67,7 @@ export const AdminInquiries: React.FC = () => {
             const customerPhone = inq.phone || (inq as any).customer_phone || '';
             const customerEmail = inq.email || (inq as any).customer_email || '';
 
-            const whatsAppReplyUrl = getWhatsAppUrl(
+            const whatsAppReplyUrl = getCustomerWhatsAppUrl(
               customerPhone,
               `Hello ${customerName}! 👋\n\nThank you for reaching out to ${companySettings.business_name} regarding "${inq.subject}". How can we assist you today?`
             );

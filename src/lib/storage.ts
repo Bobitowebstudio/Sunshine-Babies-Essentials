@@ -99,26 +99,11 @@ export const StorageService = {
 
   getSettings(): CompanySettings {
     const settings = safeGet<CompanySettings>(KEYS.SETTINGS, DEFAULT_COMPANY_SETTINGS);
-    if (!settings || !settings.business_name || settings.business_name === 'Baby Store' || settings.business_name === 'Baby Store Gold' || !settings.city || settings.city === 'Lagos' || !settings.about_story) {
-      const updated: CompanySettings = {
-        ...DEFAULT_COMPANY_SETTINGS,
-        ...settings,
-        business_name: 'Sunshine Babies Essentials',
-        tagline: settings?.tagline && settings.tagline !== 'Only the best for your little bless' && settings.tagline !== 'Little Things, Big Smiles' ? settings.tagline : "Your baby's comfort is our biggest priority.",
-        logo_url: settings?.logo_url && settings.logo_url !== '' ? settings.logo_url : '/logo.png',
-        favicon_url: '/favicon.png',
-        city: settings?.city && settings.city !== 'Lagos' && settings.city !== 'Lekki Phase 1' ? settings.city : 'Abuja',
-        state: settings?.state && settings.state !== 'Lagos' && settings.state !== 'Lagos State' ? settings.state : 'FCT',
-        country: settings?.country || 'Nigeria',
-        about_story: settings?.about_story || DEFAULT_COMPANY_SETTINGS.about_story,
-        google_maps_url: settings?.google_maps_url || DEFAULT_COMPANY_SETTINGS.google_maps_url,
-        latitude: settings?.latitude || DEFAULT_COMPANY_SETTINGS.latitude,
-        longitude: settings?.longitude || DEFAULT_COMPANY_SETTINGS.longitude,
-      };
-      safeSet(KEYS.SETTINGS, updated);
-      return updated;
-    }
-    return settings;
+    if (!settings) return { ...DEFAULT_COMPANY_SETTINGS };
+    return {
+      ...DEFAULT_COMPANY_SETTINGS,
+      ...settings,
+    };
   },
   saveSettings(settings: CompanySettings): void {
     safeSet(KEYS.SETTINGS, settings);

@@ -295,6 +295,10 @@ export interface CompanySettings {
   instagram_url: string;
   facebook_url: string;
   tiktok_url: string;
+  twitter_url?: string;
+  youtube_url?: string;
+  hero_banner_image?: string;
+  footer_text?: string;
   primary_color: string;
   secondary_color: string;
   accent_color: string;

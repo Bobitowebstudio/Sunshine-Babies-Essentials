@@ -305,7 +305,7 @@ export const AboutPage: React.FC = () => {
                   <div className="flex items-center justify-between py-1.5 border-b border-slate-800">
                     <span className="text-slate-400">WhatsApp Desk:</span>
                     <span className="font-semibold text-emerald-400">
-                      {companySettings.whatsapp_number || '+234 812 345 6789'}
+                      {companySettings.whatsapp_number || '+234 903 466 5968'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between py-1.5 border-b border-slate-800">

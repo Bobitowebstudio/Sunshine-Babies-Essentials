@@ -6,6 +6,8 @@ import {
   MessageCircle,
   Instagram,
   Facebook,
+  Twitter,
+  Youtube,
   ShieldCheck,
   Truck,
   HeartHandshake,
@@ -130,7 +132,34 @@ export const Footer: React.FC = () => {
                   <Facebook className="w-4 h-4" />
                 </a>
               )}
+              {companySettings.twitter_url && (
+                <a
+                  href={companySettings.twitter_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-sky-500 text-slate-300 hover:text-white flex items-center justify-center transition-colors"
+                  aria-label="Twitter / X"
+                >
+                  <Twitter className="w-4 h-4" />
+                </a>
+              )}
+              {companySettings.youtube_url && (
+                <a
+                  href={companySettings.youtube_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-red-600 text-slate-300 hover:text-white flex items-center justify-center transition-colors"
+                  aria-label="YouTube"
+                >
+                  <Youtube className="w-4 h-4" />
+                </a>
+              )}
             </div>
+            {companySettings.footer_text && (
+              <p className="text-[11px] text-slate-400 italic pt-1">
+                {companySettings.footer_text}
+              </p>
+            )}
           </div>
 
           {/* Categories */}
