@@ -59,20 +59,8 @@ function safeSet<T>(key: string, value: T): void {
 
 export const StorageService = {
   getProducts(): Product[] {
-    const stored = safeGet<Product[]>(KEYS.PRODUCTS, INITIAL_PRODUCTS);
-    if (!Array.isArray(stored) || stored.length === 0) {
-      safeSet(KEYS.PRODUCTS, INITIAL_PRODUCTS);
-      return INITIAL_PRODUCTS;
-    }
-    // Check if stored products have real photos or need synchronization with INITIAL_PRODUCTS
-    const storedIds = new Set(stored.map((p) => p.id));
-    const missing = INITIAL_PRODUCTS.filter((p) => !storedIds.has(p.id));
-    if (missing.length > 0) {
-      const merged = [...stored, ...missing];
-      safeSet(KEYS.PRODUCTS, merged);
-      return merged;
-    }
-    return stored;
+    const stored = safeGet<Product[]>(KEYS.PRODUCTS, []);
+    return Array.isArray(stored) ? stored : [];
   },
   saveProducts(products: Product[]): void {
     safeSet(KEYS.PRODUCTS, products);
@@ -238,3 +226,4 @@ export const StorageService = {
     window.location.reload();
   },
 };
+

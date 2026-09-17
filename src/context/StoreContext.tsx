@@ -236,7 +236,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       try {
         // 1. Load Products from Supabase
         const remoteProducts = await SupabaseService.fetchProducts();
-        if (isMounted && remoteProducts && remoteProducts.length > 0) {
+        if (isMounted && remoteProducts !== null) {
           setProducts(remoteProducts);
           StorageService.saveProducts(remoteProducts);
         }
@@ -781,11 +781,25 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
-    setProducts((prev) => [newProduct, ...prev]);
 
-    if (isSupabaseConfigured) {
-      SupabaseService.upsertProduct(newProduct);
+    if (!isSupabaseConfigured) {
+      setProducts((prev) => [newProduct, ...prev]);
+      StorageService.saveProducts([newProduct, ...products]);
+      return;
     }
+
+    SupabaseService.upsertProduct(newProduct).then((success) => {
+      if (success) {
+        setProducts((prev) => {
+          const updated = [newProduct, ...prev];
+          StorageService.saveProducts(updated);
+          return updated;
+        });
+      } else {
+        console.error('Product was not saved to Supabase.');
+        alert('Product could not be saved. Please try again.');
+      }
+    });
   };
 
   const updateProduct = (updated: Product) => {
@@ -795,25 +809,61 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       updated_at: new Date().toISOString(),
     };
 
-    setProducts((prev) =>
-      prev.map((p) => (p.id === updated.id ? refined : p))
-    );
-
-    if (isSupabaseConfigured) {
-      SupabaseService.upsertProduct(refined);
+    if (!isSupabaseConfigured) {
+      setProducts((prev) => {
+        const updatedProducts = prev.map((p) =>
+          p.id === refined.id ? refined : p
+        );
+        StorageService.saveProducts(updatedProducts);
+        return updatedProducts;
+      });
+      return;
     }
+
+    SupabaseService.upsertProduct(refined).then((success) => {
+      if (success) {
+        setProducts((prev) => {
+          const updatedProducts = prev.map((p) =>
+            p.id === refined.id ? refined : p
+          );
+          StorageService.saveProducts(updatedProducts);
+          return updatedProducts;
+        });
+      } else {
+        console.error('Product update was not saved to Supabase.');
+        alert('Product changes could not be saved. Please try again.');
+      }
+    });
   };
 
   const deleteProduct = (productId: string) => {
-    setProducts((prev) => prev.filter((p) => p.id !== productId));
-    if (isSupabaseConfigured) {
-      SupabaseService.deleteProduct(productId);
+    if (!isSupabaseConfigured) {
+      setProducts((prev) => {
+        const updatedProducts = prev.filter((p) => p.id !== productId);
+        StorageService.saveProducts(updatedProducts);
+        return updatedProducts;
+      });
+      return;
     }
+
+    SupabaseService.deleteProduct(productId).then((success) => {
+      if (success) {
+        setProducts((prev) => {
+          const updatedProducts = prev.filter((p) => p.id !== productId);
+          StorageService.saveProducts(updatedProducts);
+          return updatedProducts;
+        });
+      } else {
+        console.error('Product deletion failed in Supabase.');
+        alert('Product could not be deleted. Please try again.');
+      }
+    });
   };
 
   const duplicateProduct = (productId: string) => {
     const original = products.find((p) => p.id === productId);
     if (!original) return;
+
     const duplicated: Product = {
       ...original,
       id: `prod-${Date.now()}`,
@@ -823,10 +873,28 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
-    setProducts((prev) => [duplicated, ...prev]);
-    if (isSupabaseConfigured) {
-      SupabaseService.upsertProduct(duplicated);
+
+    if (!isSupabaseConfigured) {
+      setProducts((prev) => {
+        const updatedProducts = [duplicated, ...prev];
+        StorageService.saveProducts(updatedProducts);
+        return updatedProducts;
+      });
+      return;
     }
+
+    SupabaseService.upsertProduct(duplicated).then((success) => {
+      if (success) {
+        setProducts((prev) => {
+          const updatedProducts = [duplicated, ...prev];
+          StorageService.saveProducts(updatedProducts);
+          return updatedProducts;
+        });
+      } else {
+        console.error('Duplicated product was not saved to Supabase.');
+        alert('Product copy could not be saved. Please try again.');
+      }
+    });
   };
 
   // Category CRUD with Supabase
@@ -1318,4 +1386,6 @@ export const useStore = () => {
   }
   return context;
 };
+
+
 
