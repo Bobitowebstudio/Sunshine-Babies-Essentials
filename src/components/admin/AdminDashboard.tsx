@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
   LayoutDashboard,
   Package,
+  Tags,
   ShoppingBag,
   Users,
   Truck,
@@ -23,6 +24,7 @@ import { useStore } from '../../context/StoreContext';
 import { getProductPlaceholderSvg } from '../../lib/placeholders';
 import { BrandLogo } from '../common/BrandLogo';
 import { AdminProducts } from './AdminProducts';
+import { AdminCategories } from './AdminCategories';
 import { AdminOrders } from './AdminOrders';
 import { AdminCustomers } from './AdminCustomers';
 import { AdminDelivery } from './AdminDelivery';
@@ -35,6 +37,7 @@ import { formatCurrency } from '../../lib/utils';
 type AdminTab =
   | 'overview'
   | 'products'
+  | 'categories'
   | 'orders'
   | 'customers'
   | 'delivery'
@@ -73,6 +76,7 @@ export const AdminDashboard: React.FC = () => {
 
   const navItems: { id: AdminTab; label: string; icon: React.ComponentType<{ className?: string }>; badge?: string }[] = [
     { id: 'overview', label: 'Store Overview', icon: LayoutDashboard },
+    { id: 'categories', label: 'Categories', icon: Tags },
     { id: 'products', label: 'Products & Inventory', icon: Package, badge: lowStockCount > 0 ? `${lowStockCount} Low` : undefined },
     { id: 'orders', label: 'Orders & Dispatch', icon: ShoppingBag, badge: pendingOrders > 0 ? `${pendingOrders} New` : undefined },
     { id: 'customers', label: 'Customer Roster', icon: Users },
@@ -364,6 +368,7 @@ export const AdminDashboard: React.FC = () => {
             </div>
           )}
 
+          {activeTab === 'categories' && <AdminCategories />}
           {activeTab === 'products' && <AdminProducts />}
           {activeTab === 'orders' && <AdminOrders />}
           {activeTab === 'customers' && <AdminCustomers />}
@@ -377,3 +382,8 @@ export const AdminDashboard: React.FC = () => {
     </div>
   );
 };
+
+
+
+
+

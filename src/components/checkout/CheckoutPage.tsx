@@ -95,6 +95,7 @@ export const CheckoutPage: React.FC = () => {
   const [processingStatus, setProcessingStatus] = useState<string>('');
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [copiedAccount, setCopiedAccount] = useState(false);
+  const [activePaystackSession, setActivePaystackSession] = useState<PaystackInitResponse | null>(null);
 
 
   const selectedLocation =
@@ -917,3 +918,4 @@ export const CheckoutPage: React.FC = () => {
         </div>
   );
 };
+

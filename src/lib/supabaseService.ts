@@ -202,7 +202,7 @@ export const SupabaseService = {
         name: c.name,
         slug: c.slug || c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
         description: c.description || '',
-        image_url: c.image_url || '/logo.png',
+        image_url: c.image_url || '',
         icon: c.icon,
         is_active: c.is_active !== false,
         display_order: c.display_order ?? 0,
@@ -1641,6 +1641,88 @@ export const SupabaseService = {
   },
 
   /**
+   * Upload Category Image to Supabase Storage.
+   * Category images must be stored remotely; there is no local/base64 fallback.
+   */
+  async uploadCategoryImage(file: File): Promise<{ success: boolean; url: string; error?: string }> {
+    if (file.size > 15 * 1024 * 1024) {
+      return {
+        success: false,
+        url: '',
+        error: 'Image file is too large. Please select an image under 15MB.',
+      };
+    }
+
+    if (!file.type.startsWith('image/')) {
+      return {
+        success: false,
+        url: '',
+        error: 'Please select a valid image file.',
+      };
+    }
+
+    if (!isSupabaseConfigured || !supabase) {
+      return {
+        success: false,
+        url: '',
+        error: 'Supabase Storage is not configured. The category image was not uploaded.',
+      };
+    }
+
+    try {
+      const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const fileName = `category_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+      const filePath = `categories/${fileName}`;
+
+      const { data, error } = await supabase.storage
+        .from('product-images')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (error || !data?.path) {
+        console.error('[Supabase Storage] Category image upload failed:', error?.message || 'No storage path returned');
+
+        return {
+          success: false,
+          url: '',
+          error: error?.message || 'The category image could not be uploaded to Supabase Storage.',
+        };
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(data.path);
+
+      if (!publicUrlData?.publicUrl) {
+        return {
+          success: false,
+          url: '',
+          error: 'The category image was uploaded, but its public URL could not be generated.',
+        };
+      }
+
+      console.log(
+        `[Supabase Storage] Category image uploaded successfully: ${publicUrlData.publicUrl}`
+      );
+
+      return {
+        success: true,
+        url: publicUrlData.publicUrl,
+      };
+    } catch (err: any) {
+      console.error('[Supabase Storage] Category image upload exception:', err);
+
+      return {
+        success: false,
+        url: '',
+        error: err?.message || 'The category image could not be uploaded.',
+      };
+    }
+  },
+
+  /**
    * One-Click Complete Data Sync / Seed to Supabase
    * Seeds all products, categories, Abuja store settings, and messaging templates if database is empty.
    */
@@ -1786,3 +1868,4 @@ export const SupabaseService = {
     }
   },
 };
+

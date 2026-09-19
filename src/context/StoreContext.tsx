@@ -52,6 +52,7 @@ interface StoreContextType {
   syncAllToSupabase: () => Promise<{ success: boolean; message: string; counts?: any }>;
   uploadProductImage: (file: File) => Promise<string>;
   uploadBrandingImage: (file: File, assetType?: 'logo' | 'favicon' | 'partner' | 'hero' | 'about' | 'branding') => Promise<{ success: boolean; url: string; error?: string }>;
+  uploadCategoryImage: (file: File) => Promise<{ success: boolean; url: string; error?: string }>;
 
   // View state
   activePage: ActivePage;
@@ -243,7 +244,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
         // 2. Load Categories from Supabase
         const remoteCategories = await SupabaseService.fetchCategories();
-        if (isMounted && remoteCategories && remoteCategories.length > 0) {
+        if (isMounted && remoteCategories !== null) {
           setCategories(remoteCategories);
           StorageService.saveCategories(remoteCategories);
         }
@@ -1280,6 +1281,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return SupabaseService.uploadBrandingImage(file, assetType);
   };
 
+  const uploadCategoryImage = async (
+    file: File
+  ): Promise<{ success: boolean; url: string; error?: string }> => {
+    return SupabaseService.uploadCategoryImage(file);
+  };
   return (
     <StoreContext.Provider
       value={{
@@ -1304,6 +1310,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         syncAllToSupabase,
         uploadProductImage,
         uploadBrandingImage,
+        uploadCategoryImage,
         activePage,
         adminTab,
         isAdmin: isAuthorizedAdmin,
@@ -1386,6 +1393,10 @@ export const useStore = () => {
   }
   return context;
 };
+
+
+
+
 
 
 

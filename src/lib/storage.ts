@@ -14,17 +14,15 @@ import {
 } from '../types';
 import {
   DEFAULT_COMPANY_SETTINGS,
-  INITIAL_CATEGORIES,
   INITIAL_DELIVERY_LOCATIONS,
   INITIAL_EMAIL_TEMPLATES,
-  INITIAL_PRODUCTS,
   INITIAL_PROMOTIONAL_BANNERS,
   INITIAL_WHATSAPP_TEMPLATES,
 } from './constants';
 
 const KEYS = {
-  PRODUCTS: 'babystore_products_v9_clean_catalog',
-  CATEGORIES: 'babystore_categories_v9_clean',
+  PRODUCTS: 'babystore_products_v10_clean_catalog',
+  CATEGORIES: 'babystore_categories_v10_clean',
   SETTINGS: 'babystore_settings_v3',
   DELIVERY: 'babystore_delivery_v3',
   ORDERS: 'babystore_orders_v3',
@@ -67,19 +65,8 @@ export const StorageService = {
   },
 
   getCategories(): Category[] {
-    const stored = safeGet<Category[]>(KEYS.CATEGORIES, INITIAL_CATEGORIES);
-    if (!Array.isArray(stored) || stored.length === 0) {
-      safeSet(KEYS.CATEGORIES, INITIAL_CATEGORIES);
-      return INITIAL_CATEGORIES;
-    }
-    const storedIds = new Set(stored.map((c) => c.id));
-    const missing = INITIAL_CATEGORIES.filter((c) => !storedIds.has(c.id));
-    if (missing.length > 0) {
-      const merged = [...stored, ...missing];
-      safeSet(KEYS.CATEGORIES, merged);
-      return merged;
-    }
-    return stored;
+    const stored = safeGet<Category[]>(KEYS.CATEGORIES, []);
+    return Array.isArray(stored) ? stored : [];
   },
   saveCategories(categories: Category[]): void {
     safeSet(KEYS.CATEGORIES, categories);
@@ -226,4 +213,6 @@ export const StorageService = {
     window.location.reload();
   },
 };
+
+
 

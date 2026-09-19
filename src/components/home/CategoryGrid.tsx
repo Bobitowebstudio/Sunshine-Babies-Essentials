@@ -48,13 +48,7 @@ export const CategoryGrid: React.FC = () => {
                 className="group relative bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-lg hover:border-amber-400 transition-all duration-300 overflow-hidden cursor-pointer flex flex-col"
               >
                 <div className="aspect-4/3 w-full bg-slate-100 overflow-hidden relative">
-                  <img
-                    src={cat.image_url}
-                    alt={cat.name}
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500"
-                    loading="lazy"
-                  />
+                  <>{cat.image_url ? (<img src={cat.image_url} alt={cat.name} referrerPolicy="no-referrer" className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500" loading="lazy" />) : (<div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400"><span className="text-xs font-semibold">{cat.name}</span></div>)}</>
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 via-transparent to-transparent opacity-60 group-hover:opacity-30 transition-opacity" />
                   <span className="absolute bottom-1.5 right-1.5 px-2 py-0.5 rounded-md bg-white/90 text-slate-800 text-[10px] font-bold shadow-xs backdrop-blur-xs">
                     {count} {count === 1 ? 'item' : 'items'}
@@ -74,3 +68,4 @@ export const CategoryGrid: React.FC = () => {
     </section>
   );
 };
+
