@@ -18,40 +18,11 @@ export const PromoBanner: React.FC = () => {
       return true;
     })
     .sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+  const displayBanners: PromotionalBanner[] = promoBanners.slice(0, 4);
 
-  // Fallback defaults if admin disabled all promo banners
-  const displayBanners: PromotionalBanner[] = promoBanners.length > 0 ? promoBanners.slice(0, 4) : [
-    {
-      id: 'ban-promo-default-1',
-      title: 'Equip Your Little Scholars For Success',
-      subtitle: 'Back-to-School 2026 Collection',
-      description: 'Orthopedic school shoes, leakproof thermal bento boxes, durable backpacks, and safe art supplies.',
-      badge_text: 'BACK-TO-SCHOOL 2026',
-      button_text: 'Shop Back-to-School',
-      link_url: '/shop?category=cat-backtoschool',
-      category_id: 'cat-backtoschool',
-      image_url: 'https://images.unsplash.com/photo-1588072432836-e10032774350?auto=format&fit=crop&w=800&q=80',
-      mobile_image_url: 'https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=600&q=80',
-      bg_color: 'from-amber-950 via-slate-900 to-black',
-      is_active: true,
-      display_order: 1,
-    },
-    {
-      id: 'ban-promo-default-2',
-      title: 'Hospital Bag & Postpartum Recovery Essentials',
-      subtitle: 'Mother & Baby Care',
-      description: 'Pediatrician-formulated stretch mark oils, ergonomic nursing pillows, anti-colic feeding sets & organic cotton swaddles.',
-      badge_text: 'MOTHER & BABY CARE',
-      button_text: 'Explore Maternity Kits',
-      link_url: '/shop?category=cat-maternity',
-      category_id: 'cat-maternity',
-      image_url: 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?auto=format&fit=crop&w=800&q=80',
-      mobile_image_url: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&w=600&q=80',
-      bg_color: 'from-stone-900 via-amber-950/80 to-slate-950',
-      is_active: true,
-      display_order: 2,
-    },
-  ];
+  if (displayBanners.length === 0) {
+    return null;
+  }
 
   const handleBannerClick = (ban: PromotionalBanner) => {
     if (ban.category_id) {
@@ -156,3 +127,4 @@ export const PromoBanner: React.FC = () => {
     </section>
   );
 };
+

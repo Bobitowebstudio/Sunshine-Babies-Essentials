@@ -339,7 +339,7 @@ export const SupabaseService = {
           'Our goal is to make shopping for your little one easier by bringing together trusted baby products, maternity essentials and everyday necessities in one convenient place.',
         homepage_about_image:
           data.homepage_about_image ||
-          'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?auto=format&fit=crop&w=1000&q=80',
+          '',
         homepage_about_button_text: data.homepage_about_button_text || 'Learn More About Us',
         homepage_about_link: data.homepage_about_link || '/about',
         show_homepage_about: data.show_homepage_about !== undefined ? Boolean(data.show_homepage_about) : true,
@@ -451,6 +451,14 @@ export const SupabaseService = {
           bank_name: settings.bank_name || '',
           account_name: settings.account_name || '',
           account_number: settings.account_number || '',
+          homepage_about_heading: settings.homepage_about_heading || '',
+          homepage_about_badge: settings.homepage_about_badge || '',
+          homepage_about_description: settings.homepage_about_description || '',
+          homepage_about_description_2: settings.homepage_about_description_2 || '',
+          homepage_about_image: settings.homepage_about_image || '',
+          homepage_about_button_text: settings.homepage_about_button_text || '',
+          homepage_about_link: settings.homepage_about_link || '',
+          show_homepage_about: settings.show_homepage_about ?? true,
           updated_at: new Date().toISOString(),
         };
 
@@ -1868,4 +1876,5 @@ export const SupabaseService = {
     }
   },
 };
+
 

@@ -320,60 +320,22 @@ export const Header: React.FC = () => {
               All Items
             </button>
 
-            <button
-              onClick={() => handleCategorySelect('cat-maternity')}
-              className={`px-3 py-2.5 transition-colors cursor-pointer ${
-                selectedCategory === 'cat-maternity'
-                  ? 'text-amber-700 border-b-2 border-amber-600 font-bold'
-                  : 'text-slate-700 hover:text-amber-600'
-              }`}
-            >
-              Maternity
-            </button>
-
-            <button
-              onClick={() => handleCategorySelect('cat-clothing')}
-              className={`px-3 py-2.5 transition-colors cursor-pointer ${
-                selectedCategory === 'cat-clothing'
-                  ? 'text-amber-700 border-b-2 border-amber-600 font-bold'
-                  : 'text-slate-700 hover:text-amber-600'
-              }`}
-            >
-              Baby Clothing
-            </button>
-
-            <button
-              onClick={() => handleCategorySelect('cat-gear')}
-              className={`px-3 py-2.5 transition-colors cursor-pointer ${
-                selectedCategory === 'cat-gear'
-                  ? 'text-amber-700 border-b-2 border-amber-600 font-bold'
-                  : 'text-slate-700 hover:text-amber-600'
-              }`}
-            >
-              Baby Gear
-            </button>
-
-            <button
-              onClick={() => handleCategorySelect('cat-feeding')}
-              className={`px-3 py-2.5 transition-colors cursor-pointer ${
-                selectedCategory === 'cat-feeding'
-                  ? 'text-amber-700 border-b-2 border-amber-600 font-bold'
-                  : 'text-slate-700 hover:text-amber-600'
-              }`}
-            >
-              Feeding & Nursing
-            </button>
-
-            <button
-              onClick={() => handleCategorySelect('cat-backtoschool')}
-              className={`px-3 py-2.5 transition-colors cursor-pointer ${
-                selectedCategory === 'cat-backtoschool'
-                  ? 'text-amber-700 border-b-2 border-amber-600 font-bold'
-                  : 'text-slate-700 hover:text-amber-600'
-              }`}
-            >
-              <span className="text-amber-600">★</span> Back to School
-            </button>
+            {categories
+              .filter((cat) => cat.is_active)
+              .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))
+              .map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => handleCategorySelect(cat.id)}
+                  className={`px-3 py-2.5 transition-colors cursor-pointer ${
+                    selectedCategory === cat.id
+                      ? 'text-amber-700 border-b-2 border-amber-600 font-bold'
+                      : 'text-slate-700 hover:text-amber-600'
+                  }`}
+                >
+                  {cat.name}
+                </button>
+              ))}
 
             <button
               onClick={() => {

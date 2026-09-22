@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { PromotionalBanner } from '../../types';
-import { BANNER_IMAGE_PRESETS, INITIAL_PROMOTIONAL_BANNERS } from '../../lib/constants';
+import { INITIAL_PROMOTIONAL_BANNERS } from '../../lib/constants';
 import { processUploadedImageFile } from '../../lib/imageUpload';
 
 type FilterPlacement = 'all' | 'hero' | 'promo_grid';
@@ -36,8 +36,6 @@ export const AdminBanners: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingBannerId, setEditingBannerId] = useState<string | null>(null);
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'mobile'>('desktop');
-  const [showPresetPicker, setShowPresetPicker] = useState(false);
-  const [presetCategoryFilter, setPresetCategoryFilter] = useState<string>('All');
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [successToast, setSuccessToast] = useState<string | null>(null);
 
@@ -77,8 +75,8 @@ export const AdminBanners: React.FC = () => {
     setCategoryId(categories[0]?.id || '');
     setPlacement('hero');
     setBgColor('from-amber-950/80 via-slate-950/85 to-black');
-    setImageUrl(BANNER_IMAGE_PRESETS[0].desktopUrl);
-    setMobileImageUrl(BANNER_IMAGE_PRESETS[0].mobileUrl);
+    setImageUrl('');
+    setMobileImageUrl('');
     setIsActive(true);
     setDisplayOrder(banners.length + 1);
     setStartDate('');
@@ -132,14 +130,6 @@ export const AdminBanners: React.FC = () => {
       setUploadError('Failed to read and process the image. Please try another file.');
     }
   };
-
-  const handleApplyPreset = (preset: typeof BANNER_IMAGE_PRESETS[0]) => {
-    setImageUrl(preset.desktopUrl);
-    setMobileImageUrl(preset.mobileUrl);
-    setShowPresetPicker(false);
-    showToast(`Applied preset: ${preset.label}`);
-  };
-
   const handleSaveBanner = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !imageUrl.trim()) {
@@ -219,20 +209,6 @@ export const AdminBanners: React.FC = () => {
     }
   };
 
-  const handleRestoreDefaults = () => {
-    if (confirm('Reset all banners to the verified category-appropriate defaults?')) {
-      INITIAL_PROMOTIONAL_BANNERS.forEach((ban) => {
-        const existing = banners.find((b) => b.id === ban.id);
-        if (existing) {
-          updateBanner(ban);
-        } else {
-          addBanner(ban);
-        }
-      });
-      showToast('Banners restored to verified category photography.');
-    }
-  };
-
   // Filter banners
   const filteredBanners = banners
     .filter((b) => {
@@ -241,11 +217,6 @@ export const AdminBanners: React.FC = () => {
       return true;
     })
     .sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
-
-  const uniquePresetCategories = ['All', ...Array.from(new Set(BANNER_IMAGE_PRESETS.map((p) => p.category)))];
-  const filteredPresets = BANNER_IMAGE_PRESETS.filter(
-    (p) => presetCategoryFilter === 'All' || p.category === presetCategoryFilter
-  );
 
   return (
     <div className="space-y-6">
@@ -272,14 +243,6 @@ export const AdminBanners: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          <button
-            onClick={handleRestoreDefaults}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all cursor-pointer"
-            title="Reset to category-accurate default presets"
-          >
-            <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
-            <span>Reset Defaults</span>
-          </button>
 
           <button
             onClick={openAddModal}
@@ -654,62 +617,7 @@ export const AdminBanners: React.FC = () => {
                       <h4 className="text-xs font-black uppercase tracking-wider text-slate-700">
                         3. Banner Photography (Category Appropriate)
                       </h4>
-                      <button
-                        type="button"
-                        onClick={() => setShowPresetPicker(!showPresetPicker)}
-                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold text-[11px] cursor-pointer"
-                      >
-                        <Sparkles className="w-3.5 h-3.5 text-amber-700" />
-                        <span>{showPresetPicker ? 'Hide Presets' : 'Pick Category Preset'}</span>
-                      </button>
                     </div>
-
-                    {/* Preset Picker Dropdown / Gallery */}
-                    {showPresetPicker && (
-                      <div className="p-3 bg-white rounded-2xl border border-amber-300 shadow-sm space-y-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-slate-800">
-                            Verified Category Photo Presets:
-                          </span>
-                          <div className="flex gap-1 overflow-x-auto">
-                            {uniquePresetCategories.map((cat) => (
-                              <button
-                                key={cat}
-                                type="button"
-                                onClick={() => setPresetCategoryFilter(cat)}
-                                className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                  presetCategoryFilter === cat
-                                    ? 'bg-slate-900 text-white'
-                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                                }`}
-                              >
-                                {cat}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-48 overflow-y-auto p-1">
-                          {filteredPresets.map((preset) => (
-                            <button
-                              key={preset.id}
-                              type="button"
-                              onClick={() => handleApplyPreset(preset)}
-                              className="group relative rounded-xl overflow-hidden border border-slate-200 hover:border-amber-500 text-left transition-all cursor-pointer"
-                            >
-                              <img
-                                src={preset.thumbnail}
-                                alt={preset.label}
-                                className="w-full h-16 object-cover group-hover:scale-105 transition-transform"
-                              />
-                              <div className="p-1 bg-slate-900/90 text-white text-[9px] font-bold truncate">
-                                {preset.label}
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
 
                     {/* Desktop Image Input */}
                     <div className="space-y-1.5">
@@ -884,7 +792,7 @@ export const AdminBanners: React.FC = () => {
                           <source srcSet={mobileImageUrl} />
                         )}
                         <img
-                          src={previewDevice === 'mobile' && mobileImageUrl ? mobileImageUrl : imageUrl || BANNER_IMAGE_PRESETS[0].desktopUrl}
+                          src={previewDevice === 'mobile' && mobileImageUrl ? mobileImageUrl : imageUrl}
                           alt="Banner Preview"
                           className="w-full h-full object-cover opacity-45 scale-105"
                         />
@@ -950,3 +858,12 @@ export const AdminBanners: React.FC = () => {
     </div>
   );
 };
+
+
+
+
+
+
+
+
+

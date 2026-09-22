@@ -17,7 +17,7 @@ interface ProductImageProps {
 export const ProductImage: React.FC<ProductImageProps> = ({
   src,
   alt,
-  categoryId = 'cat-baby-essentials',
+  categoryId = '',
   viewAngle = 'main',
   className = 'w-full h-full object-cover',
   aspectRatio = 'square',
@@ -74,4 +74,5 @@ export const ProductImage: React.FC<ProductImageProps> = ({
     />
   );
 };
+
 

@@ -66,7 +66,7 @@ export const DEFAULT_COMPANY_SETTINGS: CompanySettings = {
   homepage_about_description_2:
     'Our goal is to make shopping for your little one easier by bringing together trusted baby products, maternity essentials and everyday necessities in one convenient place.',
   homepage_about_image:
-    'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?auto=format&fit=crop&w=1000&q=80',
+    '',
   homepage_about_button_text: 'Learn More About Us',
   homepage_about_link: '/about',
   show_homepage_about: true,
@@ -286,137 +286,8 @@ export const INITIAL_EMAIL_TEMPLATES: EmailTemplate[] = [
   },
 ];
 
-export const INITIAL_PROMOTIONAL_BANNERS: PromotionalBanner[] = [
-  {
-    id: 'ban-1',
-    title: 'Back-to-School Mega Essentials',
-    subtitle: 'Equip your young learners with ergonomic backpacks, thermal bento sets & orthopedic school shoes.',
-    description: 'Premium water-resistant school backpacks, leakproof bento lunchboxes, stainless water bottles, and safe school accessories.',
-    badge_text: 'BACK TO SCHOOL SALE • UP TO 30% OFF',
-    button_text: 'Shop Back-to-School',
-    link_url: '/shop?category=cat-backtoschool',
-    category_id: 'cat-backtoschool',
-    placement: 'all',
-    image_url: 'https://images.unsplash.com/photo-1588072432836-e10032774350?auto=format&fit=crop&w=1200&q=80',
-    mobile_image_url: 'https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=600&q=80',
-    bg_color: 'from-amber-950/80 via-slate-950/85 to-black',
-    is_active: true,
-    display_order: 1,
-  },
-  {
-    id: 'ban-2',
-    title: 'Pure Luxury Newborn & Maternity Care',
-    subtitle: 'Hypoallergenic organic cotton sets, advanced anti-colic feeding systems, and soothing mother-care.',
-    description: 'Certified organic cotton infant swaddles, hospital bag recovery packs, anti-colic bottles, and soothing postpartum care.',
-    badge_text: 'NEW ARRIVALS 2026',
-    button_text: 'Explore Newborn Collection',
-    link_url: '/shop?category=cat-maternity',
-    category_id: 'cat-maternity',
-    placement: 'all',
-    image_url: 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?auto=format&fit=crop&w=1200&q=80',
-    mobile_image_url: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&w=600&q=80',
-    bg_color: 'from-yellow-950/80 via-slate-900/85 to-black',
-    is_active: true,
-    display_order: 2,
-  },
-  {
-    id: 'ban-3',
-    title: 'All-Terrain Strollers & Ergonomic Gear',
-    subtitle: 'Engineered for safety, ease of travel, and luxurious comfort on every family journey.',
-    description: 'Multi-terrain shock-absorbent strollers, convertible high chairs, ergonomic baby carriers, and safe travel cots.',
-    badge_text: 'PREMIUM BABY GEAR',
-    button_text: 'View Baby Gear',
-    link_url: '/shop?category=cat-gear',
-    category_id: 'cat-gear',
-    placement: 'hero',
-    image_url: 'https://images.unsplash.com/photo-1591088398332-8a7791972843?auto=format&fit=crop&w=1200&q=80',
-    mobile_image_url: 'https://images.unsplash.com/photo-1591088398332-8a7791972843?auto=format&fit=crop&w=600&q=80',
-    bg_color: 'from-stone-950/80 via-neutral-900/85 to-black',
-    is_active: true,
-    display_order: 3,
-  },
-];
+export const INITIAL_PROMOTIONAL_BANNERS: PromotionalBanner[] = [];
 
-export interface BannerImagePreset {
-  id: string;
-  label: string;
-  category: string;
-  desktopUrl: string;
-  mobileUrl: string;
-  thumbnail: string;
-}
 
-export const BANNER_IMAGE_PRESETS: BannerImagePreset[] = [
-  {
-    id: 'preset-school-1',
-    label: 'School Backpacks & Supplies',
-    category: 'Back to School',
-    desktopUrl: 'https://images.unsplash.com/photo-1588072432836-e10032774350?auto=format&fit=crop&w=1200&q=80',
-    mobileUrl: 'https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=600&q=80',
-    thumbnail: 'https://images.unsplash.com/photo-1588072432836-e10032774350?auto=format&fit=crop&w=200&q=80',
-  },
-  {
-    id: 'preset-school-2',
-    label: 'Colorful Student Bags & Bottles',
-    category: 'Back to School',
-    desktopUrl: 'https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=1200&q=80',
-    mobileUrl: 'https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=600&q=80',
-    thumbnail: 'https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=200&q=80',
-  },
-  {
-    id: 'preset-newborn-1',
-    label: 'Organic Newborn Swaddles & Care',
-    category: 'Newborn & Maternity',
-    desktopUrl: 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?auto=format&fit=crop&w=1200&q=80',
-    mobileUrl: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&w=600&q=80',
-    thumbnail: 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?auto=format&fit=crop&w=200&q=80',
-  },
-  {
-    id: 'preset-newborn-2',
-    label: 'Infant Clothing & Soft Booties',
-    category: 'Newborn & Maternity',
-    desktopUrl: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&w=1200&q=80',
-    mobileUrl: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&w=600&q=80',
-    thumbnail: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&w=200&q=80',
-  },
-  {
-    id: 'preset-mother-1',
-    label: 'Mother Care & Postpartum Oils',
-    category: 'Newborn & Maternity',
-    desktopUrl: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=1200&q=80',
-    mobileUrl: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=600&q=80',
-    thumbnail: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=200&q=80',
-  },
-  {
-    id: 'preset-gear-1',
-    label: 'Luxury Stroller & Travel Pram',
-    category: 'Baby Gear',
-    desktopUrl: 'https://images.unsplash.com/photo-1591088398332-8a7791972843?auto=format&fit=crop&w=1200&q=80',
-    mobileUrl: 'https://images.unsplash.com/photo-1591088398332-8a7791972843?auto=format&fit=crop&w=600&q=80',
-    thumbnail: 'https://images.unsplash.com/photo-1591088398332-8a7791972843?auto=format&fit=crop&w=200&q=80',
-  },
-  {
-    id: 'preset-feeding-1',
-    label: 'Anti-Colic Feeding Bottles & Care',
-    category: 'Feeding & Nursing',
-    desktopUrl: 'https://images.unsplash.com/photo-1591522810850-58128c5fb089?auto=format&fit=crop&w=1200&q=80',
-    mobileUrl: 'https://images.unsplash.com/photo-1591522810850-58128c5fb089?auto=format&fit=crop&w=600&q=80',
-    thumbnail: 'https://images.unsplash.com/photo-1591522810850-58128c5fb089?auto=format&fit=crop&w=200&q=80',
-  },
-  {
-    id: 'preset-feeding-2',
-    label: 'Silicone Tableware & Suction Bowls',
-    category: 'Feeding & Nursing',
-    desktopUrl: 'https://images.unsplash.com/photo-1584839617966-547dfb6ef5dc?auto=format&fit=crop&w=1200&q=80',
-    mobileUrl: 'https://images.unsplash.com/photo-1584839617966-547dfb6ef5dc?auto=format&fit=crop&w=600&q=80',
-    thumbnail: 'https://images.unsplash.com/photo-1584839617966-547dfb6ef5dc?auto=format&fit=crop&w=200&q=80',
-  },
-  {
-    id: 'preset-clothing-1',
-    label: 'Soft Cotton Rompers & Baby Knitwear',
-    category: 'Baby Clothing',
-    desktopUrl: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=1200&q=80',
-    mobileUrl: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=600&q=80',
-    thumbnail: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=200&q=80',
-  },
-];
+
+

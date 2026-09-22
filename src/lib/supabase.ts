@@ -263,7 +263,7 @@ CREATE TABLE IF NOT EXISTS public.store_settings (
     homepage_about_badge TEXT DEFAULT 'ABOUT US',
     homepage_about_description TEXT DEFAULT 'Sunshine Babies Essentials is dedicated to providing quality baby and maternity essentials carefully selected with the comfort, safety and needs of mothers and babies in mind.',
     homepage_about_description_2 TEXT DEFAULT 'Our goal is to make shopping for your little one easier by bringing together trusted baby products, maternity essentials and everyday necessities in one convenient place.',
-    homepage_about_image TEXT DEFAULT 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?auto=format&fit=crop&w=1000&q=80',
+    homepage_about_image TEXT DEFAULT '',
     homepage_about_button_text TEXT DEFAULT 'Learn More About Us',
     homepage_about_link TEXT DEFAULT '/about',
     show_homepage_about BOOLEAN DEFAULT true,
@@ -407,4 +407,5 @@ CREATE POLICY "Allow Updates to product-images" ON storage.objects
 FOR UPDATE USING (bucket_id = 'product-images');
 `;
 }
+
 

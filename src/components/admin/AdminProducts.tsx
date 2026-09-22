@@ -148,7 +148,7 @@ export const AdminProducts: React.FC = () => {
     setEditingProductId(null);
     setModalTab('basic');
     setName('');
-    setCategoryId(categories[0]?.id || 'cat-baby-essentials');
+    setCategoryId(categories[0]?.id || '');
     setSubcategory('Essentials');
     setBrand('Sunshine Babies Essentials');
     setAgeGroup('All Ages');
@@ -2256,3 +2256,4 @@ export const AdminProducts: React.FC = () => {
     </div>
   );
 };
+

@@ -353,7 +353,7 @@ export const AdminOrders: React.FC = () => {
                   <div key={idx} className="py-2.5 flex items-center justify-between gap-3 text-xs">
                     <div className="flex items-center gap-3">
                       <img
-                        src={it.image || getProductPlaceholderSvg(it.name, 'cat-baby-essentials', 'main')}
+                        src={it.image || getProductPlaceholderSvg(it.name, '', 'main')}
                         alt={it.name}
                         className="w-12 h-12 rounded-lg object-cover border border-slate-200"
                       />
@@ -413,3 +413,4 @@ export const AdminOrders: React.FC = () => {
     </div>
   );
 };
+

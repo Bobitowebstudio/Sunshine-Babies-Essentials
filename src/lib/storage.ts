@@ -127,51 +127,7 @@ export const StorageService = {
   },
 
   getBanners(): PromotionalBanner[] {
-    const stored = safeGet<PromotionalBanner[]>(KEYS.BANNERS, INITIAL_PROMOTIONAL_BANNERS);
-    if (!Array.isArray(stored) || stored.length === 0) {
-      safeSet(KEYS.BANNERS, INITIAL_PROMOTIONAL_BANNERS);
-      return INITIAL_PROMOTIONAL_BANNERS;
-    }
-    
-    // Automatically sanitize and modernize stored banners if containing old/inappropriate images
-    let hasChanges = false;
-    const sanitized = stored.map((b) => {
-      let updated = { ...b };
-      if (b.image_url.includes('1522771739844-6a9f6d5f14af') || b.title.includes('Newborn & Maternity')) {
-        if (b.image_url.includes('1522771739844-6a9f6d5f14af')) {
-          updated.image_url = 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?auto=format&fit=crop&w=1200&q=80';
-          hasChanges = true;
-        }
-      }
-      if (b.image_url.includes('1497633762265') || b.title.includes('Back-to-School')) {
-        if (b.image_url.includes('1497633762265')) {
-          updated.image_url = 'https://images.unsplash.com/photo-1588072432836-e10032774350?auto=format&fit=crop&w=1200&q=80';
-          hasChanges = true;
-        }
-      }
-      if (!updated.mobile_image_url) {
-        if (updated.title.includes('Back-to-School')) {
-          updated.mobile_image_url = 'https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=600&q=80';
-          hasChanges = true;
-        } else if (updated.title.includes('Newborn') || updated.title.includes('Maternity')) {
-          updated.mobile_image_url = 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&w=600&q=80';
-          hasChanges = true;
-        } else {
-          updated.mobile_image_url = updated.image_url;
-        }
-      }
-      if (!updated.placement) {
-        updated.placement = 'all';
-        hasChanges = true;
-      }
-      return updated;
-    });
-
-    if (hasChanges) {
-      safeSet(KEYS.BANNERS, sanitized);
-      return sanitized;
-    }
-    return stored;
+    return safeGet<PromotionalBanner[]>(KEYS.BANNERS, []);
   },
   saveBanners(banners: PromotionalBanner[]): void {
     safeSet(KEYS.BANNERS, banners);
@@ -213,6 +169,7 @@ export const StorageService = {
     window.location.reload();
   },
 };
+
 
 
 
