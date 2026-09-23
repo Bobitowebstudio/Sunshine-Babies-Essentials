@@ -249,14 +249,21 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           StorageService.saveCategories(remoteCategories);
         }
 
-        // 3. Load Store Settings from Supabase
+        // 3. Load Promotional Banners from Supabase
+        const remoteBanners = await SupabaseService.fetchBanners();
+        if (isMounted && remoteBanners !== null) {
+          setBanners(remoteBanners);
+          StorageService.saveBanners(remoteBanners);
+        }
+
+        // 4. Load Store Settings from Supabase
         const remoteSettings = await SupabaseService.fetchStoreSettings();
         if (isMounted && remoteSettings) {
           setCompanySettings(remoteSettings);
           StorageService.saveSettings(remoteSettings);
         }
 
-        // 4. Load Orders from Supabase
+        // 5. Load Orders from Supabase
         const remoteOrders = await SupabaseService.fetchOrders();
         if (isMounted && remoteOrders && remoteOrders.length > 0) {
           setOrders(remoteOrders);
@@ -1104,17 +1111,41 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const deleteEmailTemplate = (id: string) => {
     setEmailTemplates((prev) => prev.filter((t) => t.id !== id));
   };
-
   const addBanner = (bData: Omit<PromotionalBanner, 'id'>) => {
-    setBanners((prev) => [...prev, { ...bData, id: `ban-${Date.now()}` }]);
+    const newBanner: PromotionalBanner = {
+      ...bData,
+      id: `ban-${Date.now()}`,
+    };
+
+    setBanners((prev) => [...prev, newBanner]);
+
+    void SupabaseService.upsertBanner(newBanner).then((success) => {
+      if (!success) {
+        console.error('Failed to save new banner to Supabase.');
+      }
+    });
   };
 
   const updateBanner = (updated: PromotionalBanner) => {
-    setBanners((prev) => prev.map((b) => (b.id === updated.id ? updated : b)));
+    setBanners((prev) =>
+      prev.map((b) => (b.id === updated.id ? updated : b))
+    );
+
+    void SupabaseService.upsertBanner(updated).then((success) => {
+      if (!success) {
+        console.error(`Failed to update banner "${updated.id}" in Supabase.`);
+      }
+    });
   };
 
   const deleteBanner = (id: string) => {
     setBanners((prev) => prev.filter((b) => b.id !== id));
+
+    void SupabaseService.deleteBanner(id).then((success) => {
+      if (!success) {
+        console.error(`Failed to delete banner "${id}" from Supabase.`);
+      }
+    });
   };
 
   // Stock Notifications
@@ -1393,10 +1424,4 @@ export const useStore = () => {
   }
   return context;
 };
-
-
-
-
-
-
 

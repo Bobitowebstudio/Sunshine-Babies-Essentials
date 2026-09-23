@@ -13,6 +13,7 @@ import {
   OrderStatus,
   PaymentStatus,
   Product,
+  PromotionalBanner,
   WhatsAppTemplate,
   EmailTemplate,
 } from '../types';
@@ -262,6 +263,112 @@ export const SupabaseService = {
     }
   },
 
+  /**
+   * Fetch promotional banners from Supabase
+   */
+  async fetchBanners(): Promise<PromotionalBanner[] | null> {
+    if (!isSupabaseConfigured || !supabase) return null;
+
+    try {
+      const { data, error } = await supabase
+        .from('promotional_banners')
+        .select('*')
+        .order('display_order', { ascending: true });
+
+      if (error) {
+        console.warn('Supabase fetchBanners error:', error.message);
+        return null;
+      }
+
+      if (!data || data.length === 0) return [];
+
+      return data.map((b: any) => ({
+        id: String(b.id),
+        title: b.title || '',
+        subtitle: b.subtitle || '',
+        description: b.description || '',
+        badge_text: b.badge_text || '',
+        button_text: b.button_text || 'Shop Now',
+        link_url: b.link_url || '',
+        image_url: b.image_url || '',
+        mobile_image_url: b.mobile_image_url || '',
+        category_id: b.category_id || '',
+        placement: b.placement || 'hero',
+        bg_color: b.bg_color || '',
+        is_active: b.is_active !== false,
+        display_order: b.display_order ?? 0,
+        start_date: b.start_date || undefined,
+        end_date: b.end_date || undefined,
+      }));
+    } catch (err) {
+      console.warn('Supabase fetchBanners network failure:', err);
+      return null;
+    }
+  },
+
+  /**
+   * Create or update a promotional banner
+   */
+  async upsertBanner(banner: PromotionalBanner): Promise<boolean> {
+    if (!isSupabaseConfigured || !supabase) return false;
+
+    try {
+      const { error } = await supabase
+        .from('promotional_banners')
+        .upsert({
+          id: banner.id,
+          title: banner.title,
+          subtitle: banner.subtitle || '',
+          description: banner.description || '',
+          badge_text: banner.badge_text || '',
+          button_text: banner.button_text || 'Shop Now',
+          link_url: banner.link_url || '',
+          image_url: banner.image_url || '',
+          mobile_image_url: banner.mobile_image_url || '',
+          category_id: banner.category_id || '',
+          placement: banner.placement || 'hero',
+          bg_color: banner.bg_color || '',
+          is_active: banner.is_active !== false,
+          display_order: banner.display_order ?? 0,
+          start_date: banner.start_date || null,
+          end_date: banner.end_date || null,
+        }, { onConflict: 'id' });
+
+      if (error) {
+        console.error('Supabase upsertBanner failed:', error.message);
+        return false;
+      }
+
+      return true;
+    } catch (err) {
+      console.error('Supabase upsertBanner exception:', err);
+      return false;
+    }
+  },
+
+  /**
+   * Delete a promotional banner
+   */
+  async deleteBanner(bannerId: string): Promise<boolean> {
+    if (!isSupabaseConfigured || !supabase) return false;
+
+    try {
+      const { error } = await supabase
+        .from('promotional_banners')
+        .delete()
+        .eq('id', bannerId);
+
+      if (error) {
+        console.error('Supabase deleteBanner failed:', error.message);
+        return false;
+      }
+
+      return true;
+    } catch (err) {
+      console.error('Supabase deleteBanner exception:', err);
+      return false;
+    }
+  },
   /**
    * Fetch Store Settings from Supabase
    */
@@ -1876,5 +1983,4 @@ export const SupabaseService = {
     }
   },
 };
-
 

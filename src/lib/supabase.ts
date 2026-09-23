@@ -408,4 +408,3 @@ FOR UPDATE USING (bucket_id = 'product-images');
 `;
 }
 
-
